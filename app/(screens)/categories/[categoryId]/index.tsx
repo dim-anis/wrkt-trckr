@@ -1,47 +1,47 @@
 import { Box } from '@/components/Box';
 import { Text } from '@/components/Text';
 import { FontAwesome6 } from '@expo/vector-icons';
-import { Link, Stack } from 'expo-router';
+import { Link, useLocalSearchParams } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
 import { useEffect, useState } from 'react';
-import { Button, Pressable, ScrollView } from 'react-native';
+import { Button, Pressable, ScrollView, useColorScheme } from 'react-native';
 
-type ExerciseCategories = {
+type Exercise = {
   id: number;
-  category: string;
+  name: string;
 };
 
-export default function SelectCategory() {
+export default function SelectExercise() {
+  const colorScheme = useColorScheme();
   const db = useSQLiteContext();
-  const [exerciseCategories, setExerciseCategories] = useState<
-    ExerciseCategories[]
-  >([]);
+  const [exercises, setExercises] = useState<Exercise[]>([]);
+  const { categoryId } = useLocalSearchParams();
+  console.log({ categoryId });
 
   useEffect(() => {
     async function setup() {
-      const result = await db.getAllAsync<ExerciseCategories>(
-        'SELECT DISTINCT category, id FROM exercises'
+      const result = await db.getAllAsync<Exercise>(
+        `SELECT id, name FROM exercises WHERE category_id = ${categoryId}`
       );
-      setExerciseCategories(result);
+      setExercises(result);
     }
 
     setup();
   }, []);
-
-  console.log(exerciseCategories);
+  console.log(exercises);
 
   return (
     <Box padding="m" backgroundColor="background" flex={1}>
       <Text variant="header" color="primary">
-        Select Category
+        Select Exercise
       </Text>
 
       <Box marginTop="s">
         <ScrollView>
-          {exerciseCategories.map(({ id, category }) => (
+          {exercises.map(({ id: exerciseId, name: exerciseName }) => (
             <Link
-              key={id}
-              href={`(screens)/select-category/select-exercise/${category}`}
+              key={exerciseId}
+              href={`(screens)/categories/${categoryId}/${exerciseId}`}
               asChild
             >
               <Pressable>
@@ -54,7 +54,7 @@ export default function SelectCategory() {
                   alignItems="center"
                 >
                   <Text color="primary" fontSize={20}>
-                    {category}
+                    {exerciseName}
                   </Text>
                   <FontAwesome6
                     name="ellipsis-vertical"

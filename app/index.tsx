@@ -9,14 +9,14 @@ export default function MainScreen() {
   return (
     <Box bg="background" flex={1} justifyContent="center" padding="m">
       <Box flexDirection="column" gap="m">
-        <Link href="/select-category" variant="primary" asChild>
+        <Link href="/(screens)/categories" variant="primary" asChild>
           <Pressable>
             <Text variant="buttonLabel" color="input">
               Start workout
             </Text>
           </Pressable>
         </Link>
-        <Link href="/use-template" variant="secondary" asChild>
+        <Link href="/(screens)/templates" variant="secondary" asChild>
           <Pressable>
             <Text variant="buttonLabel" color="secondaryForeground">
               Use template

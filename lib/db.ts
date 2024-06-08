@@ -6,6 +6,7 @@ export async function migrateDbIfNeeded(db: SQLiteDatabase) {
   PRAGMA writable_schema = 1;
 
   DROP TABLE IF EXISTS user_settings;
+  DROP TABLE IF EXISTS exercise_categories;
   DROP TABLE IF EXISTS exercises;
   DROP TABLE IF EXISTS sets;
 
@@ -58,6 +59,44 @@ export async function migrateDbIfNeeded(db: SQLiteDatabase) {
       'is_deloading',
       '0'
     );
+    // create exercise_categories
+    // -- id
+    // -- name
+    await db.execAsync(`
+    PRAGMA journal_mode = 'wal';
+    CREATE TABLE exercise_categories (
+      id INTEGER PRIMARY KEY AUTOINCREMENT, 
+      name TEXT NOT NULL UNIQUE
+    );`);
+    // add categories
+    await db.runAsync(
+      'INSERT INTO exercise_categories (name) VALUES (?)',
+      'Abs'
+    );
+    await db.runAsync(
+      'INSERT INTO exercise_categories (name) VALUES (?)',
+      'Back'
+    );
+    await db.runAsync(
+      'INSERT INTO exercise_categories (name) VALUES (?)',
+      'Biceps'
+    );
+    await db.runAsync(
+      'INSERT INTO exercise_categories (name) VALUES (?)',
+      'Chest'
+    );
+    await db.runAsync(
+      'INSERT INTO exercise_categories (name) VALUES (?)',
+      'Legs'
+    );
+    await db.runAsync(
+      'INSERT INTO exercise_categories (name) VALUES (?)',
+      'Shoulders'
+    );
+    await db.runAsync(
+      'INSERT INTO exercise_categories (name) VALUES (?)',
+      'Triceps'
+    );
     // create <exercise> table
     // -- id
     // -- name
@@ -69,32 +108,35 @@ export async function migrateDbIfNeeded(db: SQLiteDatabase) {
       id INTEGER PRIMARY KEY AUTOINCREMENT, 
       name TEXT NOT NULL UNIQUE, 
       is_compound INTEGER, 
+      category_id INTEGER,
       category TEXT,
-      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (category_id) REFERENCES exercise_categories(id)
     );`);
 
+    // [{"id": 1, "name": "Abs"}, {"id": 2, "name": "Back"}, {"id": 3, "name": "Biceps"}, {"id": 4, "name": "Chest"}, {"id": 5, "name": "Legs"}, {"id": 6, "name": "Shoulders"}, {"id": 7, "name": "Triceps"}]
     // add Barbell Squat
     await db.runAsync(
-      'INSERT INTO exercises (name, is_compound, category) VALUES (?, ?, ?)',
+      'INSERT INTO exercises (name, is_compound, category_id) VALUES (?, ?, ?)',
       'Barbell Squat',
       '1',
-      'Legs'
+      5
     );
 
     // add Barbell Bench Press
     await db.runAsync(
-      'INSERT INTO exercises (name, is_compound, category) VALUES (?, ?, ?)',
+      'INSERT INTO exercises (name, is_compound, category_id) VALUES (?, ?, ?)',
       'Barbell Bench Press',
       '1',
-      'Chest'
+      4
     );
 
     // add Deadlift
     await db.runAsync(
-      'INSERT INTO exercises (name, is_compound, category) VALUES (?, ?, ?)',
+      'INSERT INTO exercises (name, is_compound, category_id) VALUES (?, ?, ?)',
       'Deadlift',
       '1',
-      'Back'
+      2
     );
 
     // create <set> table

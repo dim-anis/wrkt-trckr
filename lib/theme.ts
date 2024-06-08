@@ -129,7 +129,7 @@ const theme = createTheme({
     buttonLabel: {
       fontSize: 14,
       lineHeight: 20,
-      fontWeight: 'medium'
+      fontWeight: 500
     },
     header: {
       fontWeight: 'bold',

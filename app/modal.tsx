@@ -7,7 +7,6 @@ import { Text } from '@/components/Text';
 export default function ModalScreen() {
   return (
     <Box bg="background" flex={1}>
-      {/* <ModalContent path="app/modal.tsx" /> */}
       <Text color="input" variant="header">
         Modal Content
       </Text>

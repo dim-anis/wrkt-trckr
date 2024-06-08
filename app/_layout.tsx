@@ -64,12 +64,10 @@ function RootLayoutNav() {
                   ? darkTheme.colors.background
                   : theme.colors.background
             },
-            headerTitleStyle: {
-              color:
-                colorScheme === 'dark'
-                  ? darkTheme.colors.primary
-                  : theme.colors.primary
-            }
+            headerTintColor:
+              colorScheme === 'dark'
+                ? darkTheme.colors.primary
+                : theme.colors.primary
           }}
         >
           <Stack.Screen name="(screens)" />

@@ -3,7 +3,8 @@ import { Stack } from 'expo-router';
 export default function Layout() {
   return (
     <Stack screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="select-exercise/[category]" />
+      <Stack.Screen name="index" />
+      <Stack.Screen name="[exerciseId]/index" />
     </Stack>
   );
 }
