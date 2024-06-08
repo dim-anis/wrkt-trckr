@@ -28,8 +28,6 @@ export default function SelectCategory() {
     setup();
   }, []);
 
-  console.log(exerciseCategories);
-
   return (
     <Box padding="m" backgroundColor="background" flex={1}>
       <Text variant="header" color="primary">

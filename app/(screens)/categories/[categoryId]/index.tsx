@@ -16,7 +16,6 @@ export default function SelectExercise() {
   const db = useSQLiteContext();
   const [exercises, setExercises] = useState<Exercise[]>([]);
   const { categoryId } = useLocalSearchParams();
-  console.log({ categoryId });
 
   useEffect(() => {
     async function setup() {
@@ -28,7 +27,6 @@ export default function SelectExercise() {
 
     setup();
   }, []);
-  console.log(exercises);
 
   return (
     <Box padding="m" backgroundColor="background" flex={1}>
