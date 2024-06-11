@@ -51,7 +51,7 @@ export default function SelectCategory() {
                   justifyContent="space-between"
                   alignItems="center"
                 >
-                  <Text color="primary" fontSize={20}>
+                  <Text fontSize={20} color="primary">
                     {categoryName}
                   </Text>
                   <FontAwesome6

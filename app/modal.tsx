@@ -7,7 +7,7 @@ import { Text } from '@/components/Text';
 export default function ModalScreen() {
   return (
     <Box bg="background" flex={1}>
-      <Text color="input" variant="header">
+      <Text color="primary" variant="header">
         Modal Content
       </Text>
 

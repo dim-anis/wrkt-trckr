@@ -9,9 +9,9 @@ export default function MainScreen() {
   return (
     <Box bg="background" flex={1} justifyContent="center" padding="m">
       <Box flexDirection="column" gap="m">
-        <Link href="/(screens)/categories" variant="primary" asChild>
+        <Link href="/(screens)/categories" asChild>
           <Pressable>
-            <Text variant="buttonLabel" color="input">
+            <Text variant="buttonLabel" color="primaryForeground">
               Start workout
             </Text>
           </Pressable>
