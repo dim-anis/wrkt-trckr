@@ -98,24 +98,18 @@ const theme = createTheme({
   },
   buttonVariants: {
     defaults: {
-      color: 'primary',
+      bg: 'primary',
       justifyContent: 'center',
       alignItems: 'center',
       borderRadius: 'md',
       height: 40,
       fontWeight: 'medium'
     },
-    primary: {
-      bg: 'primary',
-      color: 'primaryForeground'
-    },
     secondary: {
-      bg: 'secondary',
-      color: 'secondaryForeground'
+      bg: 'secondary'
     },
     destructive: {
-      bg: 'destructive',
-      color: 'destructiveForeground'
+      bg: 'destructive'
     },
     outline: {
       borderWidth: 1,
@@ -125,8 +119,48 @@ const theme = createTheme({
     ghost: {},
     link: {}
   },
+  buttonLabelVariants: {
+    defaults: {
+      color: 'primaryForeground'
+    },
+    secondary: {
+      color: 'secondaryForeground'
+    },
+    destructive: {
+      color: 'destructiveForeground'
+    },
+    outline: {
+      color: 'secondaryForeground'
+    },
+    ghost: {},
+    link: {
+      color: 'primary'
+    }
+  },
+  inputVariants: {
+    focused: {
+      borderColor: 'primary'
+    },
+    error: {
+      borderColor: 'destructive'
+    },
+    defaults: {
+      color: 'primary',
+      borderColor: 'secondary',
+      borderWidth: 1,
+      borderRadius: 'sm',
+      height: 40,
+      paddingVertical: 's',
+      paddingHorizontal: 'm'
+    }
+  },
   textVariants: {
     buttonLabel: {
+      fontSize: 14,
+      lineHeight: 20,
+      fontWeight: 500
+    },
+    inputLabel: {
       fontSize: 14,
       lineHeight: 20,
       fontWeight: 500
@@ -139,9 +173,7 @@ const theme = createTheme({
       fontSize: 16,
       lineHeight: 24
     },
-    defaults: {
-      // We can define a default text variant here.
-    }
+    defaults: {}
   }
 });
 
