@@ -158,12 +158,29 @@ export async function migrateDbIfNeeded(db: SQLiteDatabase) {
       FOREIGN KEY (exercise_id) REFERENCES exercise(id)
     );`);
     // create dummy sets
+    // Barbell Squat
     await db.runAsync(
       'INSERT INTO sets (exercise_id, weight, reps, rpe, notes) VALUES (?, ?, ?, ?, ?)',
       1,
       90,
       15,
       8,
+      'Stimulus to fatigue ratio is off. Reduce the number of reps next time.'
+    );
+    await db.runAsync(
+      'INSERT INTO sets (exercise_id, weight, reps, rpe, notes) VALUES (?, ?, ?, ?, ?)',
+      1,
+      95,
+      14,
+      6.5,
+      'Stimulus to fatigue ratio is off. Reduce the number of reps next time.'
+    );
+    await db.runAsync(
+      'INSERT INTO sets (exercise_id, weight, reps, rpe, notes) VALUES (?, ?, ?, ?, ?)',
+      1,
+      97.5,
+      13,
+      6,
       'Stimulus to fatigue ratio is off. Reduce the number of reps next time.'
     );
     await db.runAsync(
@@ -177,6 +194,54 @@ export async function migrateDbIfNeeded(db: SQLiteDatabase) {
     await db.runAsync(
       'INSERT INTO sets (exercise_id, weight, reps, rpe, notes) VALUES (?, ?, ?, ?, ?)',
       1,
+      105,
+      10,
+      9
+    );
+    // Barbell Bench Press
+    await db.runAsync(
+      'INSERT INTO sets (exercise_id, weight, reps, rpe, notes) VALUES (?, ?, ?, ?, ?)',
+      2,
+      97.5,
+      13,
+      6,
+      'Stimulus to fatigue ratio is off. Reduce the number of reps next time.'
+    );
+    await db.runAsync(
+      'INSERT INTO sets (exercise_id, weight, reps, rpe, notes) VALUES (?, ?, ?, ?, ?)',
+      2,
+      100,
+      12,
+      8.5,
+      'Felt a really good muscle connection. Must continue with this one.'
+    );
+    await db.runAsync(
+      'INSERT INTO sets (exercise_id, weight, reps, rpe, notes) VALUES (?, ?, ?, ?, ?)',
+      2,
+      105,
+      10,
+      9
+    );
+    // Deadlift
+    await db.runAsync(
+      'INSERT INTO sets (exercise_id, weight, reps, rpe, notes) VALUES (?, ?, ?, ?, ?)',
+      3,
+      97.5,
+      13,
+      6,
+      'Stimulus to fatigue ratio is off. Reduce the number of reps next time.'
+    );
+    await db.runAsync(
+      'INSERT INTO sets (exercise_id, weight, reps, rpe, notes) VALUES (?, ?, ?, ?, ?)',
+      3,
+      100,
+      12,
+      8.5,
+      'Felt a really good muscle connection. Must continue with this one.'
+    );
+    await db.runAsync(
+      'INSERT INTO sets (exercise_id, weight, reps, rpe, notes) VALUES (?, ?, ?, ?, ?)',
+      3,
       105,
       10,
       9
