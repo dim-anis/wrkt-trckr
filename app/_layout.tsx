@@ -10,6 +10,8 @@ import 'react-native-reanimated';
 import { useColorScheme } from '@/components/useColorScheme';
 import { SQLiteProvider } from 'expo-sqlite';
 import { migrateDbIfNeeded } from '@/lib/db';
+import { Ionicons } from '@expo/vector-icons';
+import { Box } from '@/components/ui/Box';
 
 export {
   // Catch any errors thrown by the Layout component.
@@ -57,6 +59,11 @@ function RootLayoutNav() {
         <Stack
           initialRouteName="index"
           screenOptions={{
+            headerRight: () => (
+              <Box flexDirection="row" gap="s">
+                <Ionicons name="qr-code-outline" color="white" size={20} />
+              </Box>
+            ),
             headerTitle: 'WrktTrckr',
             headerStyle: {
               backgroundColor:
@@ -70,7 +77,8 @@ function RootLayoutNav() {
                 : theme.colors.primary
           }}
         >
-          <Stack.Screen name="(screens)" />
+          <Stack.Screen name="categories" />
+          <Stack.Screen name="templates" />
           <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
         </Stack>
       </SQLiteProvider>
