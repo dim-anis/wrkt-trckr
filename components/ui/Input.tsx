@@ -16,23 +16,23 @@ import {
   BorderProps
 } from '@shopify/restyle';
 import { Control, FieldValues, Path, useController } from 'react-hook-form';
-import { TextInput as DefaultTextInput, TextInputProps } from 'react-native';
+import { TextInput as DefaultTextInput } from 'react-native';
 import type { TextInput as TTextInput } from 'react-native';
 import { Box } from './Box';
 import { Text } from './Text';
 import React from 'react';
 
-const TextInput = createRestyleComponent<
-  SpacingProps<Theme> &
-    BorderProps<Theme> &
-    LayoutProps<Theme> &
-    ColorProps<Theme> &
-    BackgroundColorProps<Theme> &
-    VariantProps<Theme, 'inputVariants', 'inputVariant'> &
-    React.ComponentProps<typeof DefaultTextInput>,
-  Theme
->(
+type TextInputProps = SpacingProps<Theme> &
+  BorderProps<Theme> &
+  LayoutProps<Theme> &
+  ColorProps<Theme> &
+  BackgroundColorProps<Theme> &
+  VariantProps<Theme, 'inputVariants', 'inputVariant'> &
+  React.ComponentProps<typeof DefaultTextInput>;
+
+const TextInput = createRestyleComponent<TextInputProps, Theme>(
   [
+    layout,
     spacing,
     border,
     backgroundColor,
@@ -70,9 +70,6 @@ export const Input = React.forwardRef<TTextInput, NInputProps>((props, ref) => {
     <Box>
       <TextInput
         inputVariant={inputVariant}
-        autoCapitalize="none"
-        keyboardType="numeric"
-        inputMode="numeric"
         onBlur={onBlur}
         onFocus={onFocus}
         {...inputProps}
@@ -94,12 +91,18 @@ export function ControlledInput<T extends FieldValues>(
     control,
     name
   });
+  const value =
+    typeof field.value === 'string'
+      ? field.value
+      : typeof field.value === 'number'
+        ? `${field.value}`
+        : '';
   return (
     <Input
       ref={field.ref}
       autoCapitalize="none"
       onChangeText={field.onChange}
-      value={(field.value as string) || ''}
+      value={value}
       {...inputProps}
       error={fieldState.error?.message}
     />
