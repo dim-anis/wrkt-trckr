@@ -91,7 +91,10 @@ const theme = createTheme({
     sm: globals.light['--radius'] - 4
   },
   spacing: {
+    xxs: 2,
+    xs: 4,
     s: 8,
+    sm: 10,
     m: 16,
     l: 24,
     xl: 40
@@ -168,6 +171,10 @@ const theme = createTheme({
     header: {
       fontWeight: 'bold',
       fontSize: 34
+    },
+    header2: {
+      fontWeight: 'bold',
+      fontSize: 26
     },
     body: {
       fontSize: 16,
