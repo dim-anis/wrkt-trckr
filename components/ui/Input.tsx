@@ -2,7 +2,6 @@ import { Theme } from '@/lib/theme';
 import {
   createVariant,
   createRestyleComponent,
-  TypographyProps,
   VariantProps,
   backgroundColor,
   spacing,
@@ -13,7 +12,8 @@ import {
   LayoutProps,
   SpacingProps,
   BackgroundColorProps,
-  BorderProps
+  BorderProps,
+  useTheme
 } from '@shopify/restyle';
 import { Control, FieldValues, Path, useController } from 'react-hook-form';
 import { TextInput as DefaultTextInput } from 'react-native';
@@ -46,10 +46,11 @@ const TextInput = createRestyleComponent<TextInputProps, Theme>(
 );
 
 interface NInputProps extends TextInputProps {
+  label?: string;
   error?: string;
 }
 
-type InputControllerType<T extends FieldValues> = {
+export type InputControllerType<T extends FieldValues> = {
   name: Path<T>;
   control: Control<T>;
   error?: string;
@@ -60,15 +61,21 @@ interface ControlledInputProps<T extends FieldValues>
     InputControllerType<T> {}
 
 export const Input = React.forwardRef<TTextInput, NInputProps>((props, ref) => {
-  const { error, ...inputProps } = props;
+  const { error, label, ...inputProps } = props;
   const [isFocused, setIsFocused] = React.useState(false);
   const onBlur = React.useCallback(() => setIsFocused(false), []);
   const onFocus = React.useCallback(() => setIsFocused(true), []);
   const inputVariant = isFocused ? 'focused' : error ? 'error' : undefined;
 
   return (
-    <Box>
+    <Box gap="s">
+      {label && (
+        <Text variant="inputLabel" color="primary">
+          {label}
+        </Text>
+      )}
       <TextInput
+        ref={ref}
         inputVariant={inputVariant}
         onBlur={onBlur}
         onFocus={onFocus}
@@ -86,22 +93,25 @@ export const Input = React.forwardRef<TTextInput, NInputProps>((props, ref) => {
 export function ControlledInput<T extends FieldValues>(
   props: ControlledInputProps<T>
 ) {
+  const theme = useTheme<Theme>();
   const { name, control, ...inputProps } = props;
   const { field, fieldState } = useController({
     control,
     name
   });
+
   const value =
     typeof field.value === 'string'
       ? field.value
       : typeof field.value === 'number'
         ? `${field.value}`
-        : '';
+        : undefined;
   return (
     <Input
       ref={field.ref}
       autoCapitalize="none"
       onChangeText={field.onChange}
+      placeholderTextColor={theme.colors.primary}
       value={value}
       {...inputProps}
       error={fieldState.error?.message}

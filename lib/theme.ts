@@ -30,6 +30,11 @@ const globals = {
     '--input': '214.3 31.8% 91.4%',
     '--ring': '222.2 84% 4.9%',
 
+    '--green': '109 58% 40%',
+    '--yellow': '35 77% 49%',
+    '--orange': '22 99% 52%',
+    '--red': '347 87% 44%',
+
     '--radius': 8
   },
   dark: {
@@ -61,6 +66,11 @@ const globals = {
     '--input': '217.2 32.6% 17.5%',
     '--ring': '212.7,26.8%,83.9',
 
+    '--green': '115 54% 76%',
+    '--yellow': '41 86% 83%',
+    '--orange': '23 92% 75%',
+    '--red': '343 81% 75%',
+
     '--radius': 8
   }
 };
@@ -83,7 +93,11 @@ const theme = createTheme({
     popover: `hsl(${globals.light['--popover']})`,
     popoverForeground: `hsl(${globals.light['--popover-foreground']})`,
     card: `hsl(${globals.light['--card']})`,
-    cardForeground: `hsl(${globals.light['--card-foreground']})`
+    cardForeground: `hsl(${globals.light['--card-foreground']})`,
+    green: `hsl(${globals.light['--green']})`,
+    yellow: `hsl(${globals.light['--yellow']})`,
+    orange: `hsl(${globals.light['--orange']})`,
+    red: `hsl(${globals.light['--red']})`
   },
   borderRadii: {
     lg: globals.light['--radius'],
@@ -97,7 +111,8 @@ const theme = createTheme({
     sm: 10,
     m: 16,
     l: 24,
-    xl: 40
+    xl: 32,
+    xxl: 40
   },
   buttonVariants: {
     defaults: {
@@ -116,7 +131,7 @@ const theme = createTheme({
     },
     outline: {
       borderWidth: 1,
-      borderColor: 'input',
+      borderColor: 'border',
       bg: 'background'
     },
     ghost: {},
@@ -170,11 +185,15 @@ const theme = createTheme({
     },
     header: {
       fontWeight: 'bold',
-      fontSize: 34
+      fontSize: 32
     },
     header2: {
       fontWeight: 'bold',
       fontSize: 26
+    },
+    header3: {
+      fontWeight: 'bold',
+      fontSize: 20
     },
     body: {
       fontSize: 16,
@@ -203,7 +222,11 @@ const darkTheme: Theme = {
     popover: `hsl(${globals.dark['--popover']})`,
     popoverForeground: `hsl(${globals.dark['--popover-foreground']})`,
     card: `hsl(${globals.dark['--card']})`,
-    cardForeground: `hsl(${globals.dark['--card-foreground']})`
+    cardForeground: `hsl(${globals.dark['--card-foreground']})`,
+    green: `hsl(${globals.dark['--green']})`,
+    yellow: `hsl(${globals.dark['--yellow']})`,
+    orange: `hsl(${globals.dark['--orange']})`,
+    red: `hsl(${globals.dark['--red']})`
   }
 };
 

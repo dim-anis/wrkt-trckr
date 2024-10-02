@@ -2,7 +2,6 @@ import { Theme } from '@/lib/theme';
 import {
   createVariant,
   createRestyleComponent,
-  TypographyProps,
   VariantProps,
   layout,
   LayoutProps

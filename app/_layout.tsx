@@ -1,17 +1,20 @@
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { ThemeProvider } from '@shopify/restyle';
-import { theme, darkTheme } from '../lib/theme';
 import { useFonts } from 'expo-font';
-import { Stack } from 'expo-router';
+import { Stack, useFocusEffect } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
-import { useEffect } from 'react';
+import { PropsWithChildren, useEffect } from 'react';
 import 'react-native-reanimated';
+import { darkTheme, theme } from '../lib/theme';
 
 import { useColorScheme } from '@/components/useColorScheme';
-import { SQLiteProvider } from 'expo-sqlite';
 import { migrateDbIfNeeded } from '@/lib/db';
-import { Ionicons } from '@expo/vector-icons';
-import { Box } from '@/components/ui/Box';
+import { UserSettings } from '@/types';
+import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
+import { SQLiteProvider, useSQLiteContext } from 'expo-sqlite';
+import React from 'react';
+import FlashMessage from 'react-native-flash-message';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 export {
   // Catch any errors thrown by the Layout component.
@@ -20,7 +23,7 @@ export {
 
 export const unstable_settings = {
   // Ensure that reloading on `/modal` keeps a back button present.
-  initialRouteName: '(tabs)'
+  initialRouteName: 'index'
 };
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
@@ -51,37 +54,74 @@ export default function RootLayout() {
 }
 
 function RootLayoutNav() {
-  const colorScheme = useColorScheme();
+  return (
+    <Providers>
+      <Stack initialRouteName="index">
+        <Stack.Screen name="screens" options={{ headerShown: false }} />
+      </Stack>
+    </Providers>
+  );
+}
+
+function Providers({ children }: PropsWithChildren) {
+  return (
+    <SQLiteProvider databaseName="user.db" onInit={migrateDbIfNeeded}>
+      <ThemeProviderWithPreference>
+        <GestureHandlerRootView>
+          <BottomSheetModalProvider>
+            {children}
+            <FlashMessage position="bottom" />
+          </BottomSheetModalProvider>
+        </GestureHandlerRootView>
+      </ThemeProviderWithPreference>
+    </SQLiteProvider>
+  );
+}
+
+function ThemeProviderWithPreference({ children }: PropsWithChildren) {
+  let colorScheme = useColorScheme();
+  const [themePreference, setThemePreference] =
+    React.useState<Pick<UserSettings, 'is_dark'>>();
+
+  const db = useSQLiteContext();
+
+  useFocusEffect(
+    React.useCallback(() => {
+      let isActive = true;
+
+      const fetchSets = async () => {
+        try {
+          const result = await db.getFirstAsync<Pick<UserSettings, 'is_dark'>>(
+            `SELECT is_dark FROM user_settings ORDER BY id ASC LIMIT 1;`
+          );
+
+          if (result) {
+            setThemePreference(result);
+          }
+        } catch (error) {}
+      };
+
+      fetchSets();
+
+      return () => {
+        isActive = false;
+      };
+    }, [db])
+  );
+
+  if (themePreference) {
+    if (themePreference.is_dark === null) {
+      colorScheme = colorScheme;
+    } else {
+      colorScheme = themePreference.is_dark === 1 ? 'dark' : 'light';
+    }
+  } else {
+    colorScheme = colorScheme;
+  }
 
   return (
     <ThemeProvider theme={colorScheme === 'dark' ? darkTheme : theme}>
-      <SQLiteProvider databaseName="user.db" onInit={migrateDbIfNeeded}>
-        <Stack
-          initialRouteName="index"
-          screenOptions={{
-            headerRight: () => (
-              <Box flexDirection="row" gap="s">
-                <Ionicons name="qr-code-outline" color="white" size={20} />
-              </Box>
-            ),
-            headerTitle: 'WrktTrckr',
-            headerStyle: {
-              backgroundColor:
-                colorScheme === 'dark'
-                  ? darkTheme.colors.background
-                  : theme.colors.background
-            },
-            headerTintColor:
-              colorScheme === 'dark'
-                ? darkTheme.colors.primary
-                : theme.colors.primary
-          }}
-        >
-          <Stack.Screen name="categories" />
-          <Stack.Screen name="templates" />
-          <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
-        </Stack>
-      </SQLiteProvider>
+      {children}
     </ThemeProvider>
   );
 }

@@ -2,12 +2,9 @@ import { Theme } from '@/lib/theme';
 import { Text } from './Text';
 import {
   createVariant,
-  createRestyleComponent,
-  TypographyProps,
   VariantProps,
   color,
   backgroundColor,
-  typography,
   border,
   ColorProps,
   BackgroundColorProps,
@@ -17,7 +14,7 @@ import {
   SpacingProps,
   composeRestyleFunctions
 } from '@shopify/restyle';
-import { Button as DefaultButton, Pressable } from 'react-native';
+import { Pressable } from 'react-native';
 import { Box } from './Box';
 
 type RestyleProps = SpacingProps<Theme> &
@@ -38,7 +35,7 @@ const restyleFunctions = composeRestyleFunctions<Theme, RestyleProps>([
 
 type ButtonProps = RestyleProps & {
   label: string;
-  onPress: () => void;
+  onPress?: () => void;
 };
 
 export default function Button({ onPress, label, ...rest }: ButtonProps) {

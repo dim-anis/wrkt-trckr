@@ -10,7 +10,6 @@ import {
   VisibleProps,
   color,
   createRestyleComponent,
-  createText,
   createVariant,
   layout,
   opacity,
