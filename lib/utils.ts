@@ -63,14 +63,15 @@ export function showToast({ theme, title, subtitle }: Toast) {
     }
   });
 }
-export function groupSetsByExercise<T extends SetWithExerciseData>(sets: T[]) {
+export function groupSetsByExercise<T extends SetWithExerciseData>(
+  sets: T[]
+): Map<string, T[]> {
   return sets.reduce((result, currSet) => {
-    const exerciseSets = result.get(currSet.exerciseName);
-    if (exerciseSets) {
-      exerciseSets.push(currSet);
-    } else {
-      result.set(currSet.exerciseName, [currSet]);
-    }
+    const exerciseSets = result.get(currSet.exerciseName) || [];
+    exerciseSets.push(currSet);
+
+    result.set(currSet.exerciseName, exerciseSets);
+
     return result;
   }, new Map<string, T[]>());
 }
@@ -79,12 +80,11 @@ export function groupSetsByDate<T extends WorkoutSet>(
   sets: T[]
 ): Map<string, T[]> {
   return sets.reduce((result, currSet) => {
-    const exerciseSets = result.get(currSet.created_at);
-    if (exerciseSets) {
-      exerciseSets.push(currSet);
-    } else {
-      result.set(currSet.created_at, [currSet]);
-    }
+    const exerciseSets = result.get(currSet.created_at) || [];
+    exerciseSets.push(currSet);
+
+    result.set(currSet.created_at, exerciseSets);
+
     return result;
   }, new Map<string, T[]>());
 }
