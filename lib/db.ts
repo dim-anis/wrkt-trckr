@@ -12,6 +12,7 @@ const dropTablesQuery = `
   DROP TABLE IF EXISTS exercise_categories;
   DROP TABLE IF EXISTS exercises;
   DROP TABLE IF EXISTS sets;
+  DROP TABLE IF EXISTS workouts;
 
   PRAGMA user_version = 0;
   PRAGMA writable_schema = 0;
@@ -89,36 +90,80 @@ export async function migrateDbIfNeeded(db: SQLiteDatabase) {
     await Promise.all(exercisePromises);
 
     // #### create <set> table (id, exercise, reps, rpe, notes, created_at) ####
+    //
+    await db.execAsync(`
+    PRAGMA journal_mode = 'wal';
+    CREATE TABLE workouts (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      start_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+    PRAGMA table_info(workouts);
+`);
+
+    // #### create <set> table (id, exercise, reps, rpe, notes, created_at) ####
 
     await db.execAsync(`
     PRAGMA journal_mode = 'wal';
     CREATE TABLE sets (
       id INTEGER PRIMARY KEY AUTOINCREMENT, 
       exercise_id INTEGER, 
+      workout_id INTEGER, 
       weight REAL, 
       added_resistance REAL,
       reps INTEGER, 
       rpe REAL,
       notes TEXT,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (exercise_id) REFERENCES exercise(id)
+      FOREIGN KEY (exercise_id) REFERENCES exercises(id),
+      FOREIGN KEY (workout_id) REFERENCES workouts(id)
     );
     PRAGMA table_info(sets);
 `);
 
-    const setPromises = sets.map(
-      ({ exercise_id, metric_weight, reps, date }) => {
-        return db.runAsync(
-          'INSERT INTO sets (exercise_id, weight, reps, created_at) VALUES (?, ?, ?, datetime(?))',
-          exercise_id,
-          metric_weight,
-          reps,
-          date
-        );
-      }
+    const setsGroupedByDate = sets.reduce(
+      (result, currSet) => {
+        const exerciseSets = result[currSet.date] || [];
+        exerciseSets.push(currSet);
+
+        result[currSet.date] = exerciseSets;
+
+        return result;
+      },
+      {} as Record<string, (typeof sets)[number][]>
     );
 
-    await Promise.all(setPromises);
+    // const setPromises = sets.map(
+    //   ({ exercise_id, metric_weight, reps, date }) => {
+    //     return db.runAsync(
+    //       'INSERT INTO sets (exercise_id, weight, reps, created_at) VALUES (?, ?, ?, datetime(?))',
+    //       exercise_id,
+    //       metric_weight,
+    //       reps,
+    //       date
+    //     );
+    //   }
+    // );
+
+    [...Object.entries(setsGroupedByDate)].forEach(
+      async ([workoutDate, workoutSets]) => {
+        const createWorkoutResult = await db.runAsync(
+          `INSERT INTO workouts (start_time) VALUES (?);`,
+          workoutDate
+        );
+
+        const workoutId = createWorkoutResult.lastInsertRowId;
+
+        const createWorkoutSets = workoutSets.reduce(
+          (stmt, set) =>
+            stmt.concat(
+              `INSERT INTO sets (workout_id, exercise_id, weight, reps, created_at) VALUES (${workoutId}, ${set.exercise_id}, ${set.metric_weight}, ${set.reps}, '${set.date}');`
+            ),
+          ''
+        );
+
+        await db.execAsync(createWorkoutSets);
+      }
+    );
 
     currentDbVersion = 1;
   }
