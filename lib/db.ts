@@ -132,18 +132,6 @@ export async function migrateDbIfNeeded(db: SQLiteDatabase) {
       {} as Record<string, (typeof sets)[number][]>
     );
 
-    // const setPromises = sets.map(
-    //   ({ exercise_id, metric_weight, reps, date }) => {
-    //     return db.runAsync(
-    //       'INSERT INTO sets (exercise_id, weight, reps, created_at) VALUES (?, ?, ?, datetime(?))',
-    //       exercise_id,
-    //       metric_weight,
-    //       reps,
-    //       date
-    //     );
-    //   }
-    // );
-
     [...Object.entries(setsGroupedByDate)].forEach(
       async ([workoutDate, workoutSets]) => {
         const createWorkoutResult = await db.runAsync(
