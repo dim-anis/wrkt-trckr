@@ -90,16 +90,16 @@ export async function migrateDbIfNeeded(db: SQLiteDatabase) {
 
     await Promise.all(exercisePromises);
 
-    // #### create <set> table (id, exercise, reps, rpe, notes, created_at) ####
-    //
+    // #### create <workouts> table (id, created_at) ####
+
     await db.execAsync(`
     PRAGMA journal_mode = 'wal';
     CREATE TABLE workouts (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
-      start_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      created_at TEXT DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
     );
     PRAGMA table_info(workouts);
-`);
+    `);
 
     // #### create <exercise_session> table (id, workout_id, exercise_id, start_time, end_time, notes) ####
 
@@ -155,7 +155,7 @@ export async function migrateDbIfNeeded(db: SQLiteDatabase) {
     [...Object.entries(setsGroupedByDate)].forEach(
       async ([workoutDate, workoutSets]) => {
         const createWorkoutResult = await db.runAsync(
-          `INSERT INTO workouts (start_time) VALUES (?);`,
+          `INSERT INTO workouts (created_at) VALUES (?);`,
           workoutDate
         );
 
