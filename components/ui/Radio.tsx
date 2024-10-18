@@ -108,12 +108,20 @@ export const Root = ({
   );
 };
 
-export const RadioIcon = ({ checked = false, ...props }: IconProps) => {
+export const RadioIcon = ({
+  checked = false,
+  checkedIcon = 'radio-button-on-outline',
+  uncheckedIcon = 'radio-button-off-outline',
+  ...props
+}: IconProps & {
+  checkedIcon?: IoniconsIconName;
+  uncheckedIcon?: IoniconsIconName;
+}) => {
   const theme = useTheme<Theme>();
 
   return (
     <Ionicons
-      name={checked ? 'radio-button-on-outline' : 'radio-button-off-outline'}
+      name={checked ? checkedIcon : uncheckedIcon}
       color={theme.colors.primary}
       size={24}
       {...props}
