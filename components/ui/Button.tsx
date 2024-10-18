@@ -18,6 +18,7 @@ import {
 } from '@shopify/restyle';
 import { Pressable } from 'react-native';
 import { Box } from './Box';
+import { ReactElement } from 'react';
 
 type RestyleProps = SpacingProps<Theme> &
   ColorProps<Theme> &
@@ -38,19 +39,23 @@ const restyleFunctions = composeRestyleFunctions<Theme, RestyleProps>([
 ]);
 
 type ButtonProps = RestyleProps & {
-  label: string;
+  label?: string;
+  icon?: ReactElement;
   onPress?: () => void;
 };
 
-export default function Button({ onPress, label, ...rest }: ButtonProps) {
+export default function Button({ onPress, label, icon, ...rest }: ButtonProps) {
   const props = useRestyle(restyleFunctions, rest);
 
   return (
     <Pressable onPress={onPress}>
-      <Box {...props}>
-        <Text variant="buttonLabel" labelVariant={rest.variant}>
-          {label}
-        </Text>
+      <Box gap="m" flexDirection="row" {...props}>
+        {icon && icon}
+        {label && (
+          <Text variant="buttonLabel" labelVariant={rest.variant}>
+            {label}
+          </Text>
+        )}
       </Box>
     </Pressable>
   );
