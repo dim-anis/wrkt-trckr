@@ -148,7 +148,9 @@ const ModalHeader = React.memo(({ title, dismiss }: ModalHeaderProps) => {
           {title}
         </Text>
       )}
-      <CloseButton close={dismiss} />
+      <Box style={{ marginLeft: 'auto' }}>
+        <CloseButton close={dismiss} />
+      </Box>
     </Box>
   );
 });
