@@ -12,7 +12,9 @@ import {
   useRestyle,
   spacing,
   SpacingProps,
-  composeRestyleFunctions
+  composeRestyleFunctions,
+  layout,
+  LayoutProps
 } from '@shopify/restyle';
 import { Pressable } from 'react-native';
 import { Box } from './Box';
@@ -20,10 +22,12 @@ import { Box } from './Box';
 type RestyleProps = SpacingProps<Theme> &
   ColorProps<Theme> &
   BorderProps<Theme> &
+  LayoutProps<Theme> &
   BackgroundColorProps<Theme> &
   VariantProps<Theme, 'buttonVariants'>;
 
 const restyleFunctions = composeRestyleFunctions<Theme, RestyleProps>([
+  layout,
   color,
   spacing,
   border,
