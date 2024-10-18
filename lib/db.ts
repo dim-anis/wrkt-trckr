@@ -119,20 +119,23 @@ export async function migrateDbIfNeeded(db: SQLiteDatabase) {
     PRAGMA table_info(exercise_session);
     `);
 
+    // #### create <sets> table (id, exercise, reps, rpe, created_at) ####
+
     await db.execAsync(`
     PRAGMA journal_mode = 'wal';
     CREATE TABLE sets (
       id INTEGER PRIMARY KEY AUTOINCREMENT, 
-      exercise_id INTEGER, 
-      workout_id INTEGER, 
+      exercise_id INTEGER NOT NULL, 
+      workout_id INTEGER NOT NULL, 
+      exercise_session_id INTEGER NOT NULL,
       weight REAL, 
       added_resistance REAL,
       reps INTEGER, 
       rpe REAL,
-      notes TEXT,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (exercise_id) REFERENCES exercises(id),
-      FOREIGN KEY (workout_id) REFERENCES workouts(id)
+      FOREIGN KEY (exercise_session_id) REFERENCES exercise_session(id) ON DELETE CASCADE,
+      FOREIGN KEY (workout_id) REFERENCES workouts(id) ON DELETE CASCADE
     );
     PRAGMA table_info(sets);
 `);
