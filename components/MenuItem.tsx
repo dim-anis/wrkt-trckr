@@ -1,21 +1,21 @@
-import { Ionicons } from '@expo/vector-icons';
+import { ReactElement } from 'react';
 import { Box } from './ui/Box';
 import { Text } from './ui/Text';
-import { useTheme } from '@shopify/restyle';
 import { Theme } from '@/lib/theme';
-import { IoniconsIconName } from '@/types';
+
+type Props = {
+  label: string;
+  textColor: keyof Theme['colors'];
+  iconLeft?: ReactElement;
+  iconRight?: ReactElement;
+};
 
 export default function MenuItem({
   label,
-  icon,
+  textColor = 'primary',
+  iconLeft,
   iconRight
-}: {
-  label: string;
-  icon?: IoniconsIconName;
-  iconRight?: IoniconsIconName;
-}) {
-  const theme = useTheme<Theme>();
-
+}: Props) {
   return (
     <Box
       flexDirection="row"
@@ -24,14 +24,12 @@ export default function MenuItem({
       justifyContent="space-between"
     >
       <Box flexDirection="row" alignItems="center">
-        <Ionicons name={icon} color={theme.colors.primary} size={20} />
-        <Text color="primary" fontSize={18} marginLeft="m">
+        {iconLeft && iconLeft}
+        <Text color={textColor} fontSize={18} marginLeft="m">
           {label}
         </Text>
       </Box>
-      {iconRight && (
-        <Ionicons name={iconRight} color={theme.colors.primary} size={20} />
-      )}
+      {iconRight && iconRight}
     </Box>
   );
 }
