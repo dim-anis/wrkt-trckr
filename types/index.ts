@@ -2,12 +2,20 @@ import { Ionicons } from '@expo/vector-icons';
 import { Href } from 'expo-router';
 import React from 'react';
 
+export type Workout = {
+  id: number;
+  created_at: string;
+};
+
+export type WeightUnit = 'kg' | 'lb' | 'bw';
+
 export type WorkoutSet = {
   id: number;
   exercise_id: number;
   reps: number;
   created_at: string;
   weight: number | null;
+  weight_unit: WeightUnit;
   added_resistance: number | null;
   rpe: number | null;
   notes: string | null;
