@@ -5,7 +5,7 @@ import { Theme } from '@/lib/theme';
 
 type Props = {
   label: string;
-  textColor: keyof Theme['colors'];
+  textColor?: keyof Theme['colors'];
   iconLeft?: ReactElement;
   iconRight?: ReactElement;
 };
