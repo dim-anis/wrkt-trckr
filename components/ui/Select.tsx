@@ -5,7 +5,7 @@ import {
 import * as React from 'react';
 import type { FieldValues } from 'react-hook-form';
 import { useController } from 'react-hook-form';
-import { Pressable, type PressableProps } from 'react-native';
+import { Platform, Pressable, type PressableProps } from 'react-native';
 
 import type { InputControllerType } from './Input';
 import { Box } from './Box';
@@ -15,6 +15,7 @@ import { Text } from './Text';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@shopify/restyle';
 import { Theme } from '@/lib/theme';
+import Badge from '../Badge';
 import { FlashList } from '@shopify/flash-list';
 
 export type OptionItem = { label: string; value: string | number };
@@ -22,6 +23,7 @@ export type OptionItem = { label: string; value: string | number };
 type OptionsProps = {
   options: OptionItem[];
   onSelect: (option: OptionItem) => void;
+  optionsTitle?: string;
   value?: string | number;
 };
 
@@ -32,7 +34,7 @@ function keyExtractor(item: OptionItem) {
 }
 
 export const Options = React.forwardRef<BottomSheetModal, OptionsProps>(
-  ({ options, onSelect, value }, ref) => {
+  ({ options, onSelect, value, optionsTitle }, ref) => {
     const theme = useTheme<Theme>();
     const height = options.length * 70 + 100;
     const snapPoints = React.useMemo(() => [height], [height]);
@@ -52,17 +54,19 @@ export const Options = React.forwardRef<BottomSheetModal, OptionsProps>(
     return (
       <Modal
         ref={ref}
-        index={0}
+        index={1}
+        title={optionsTitle}
         snapPoints={snapPoints}
         backgroundStyle={{
           backgroundColor: theme.colors.background
         }}
       >
         <Box flex={1} padding="m">
-          <BottomSheetFlatList
+          <List
             data={options}
             keyExtractor={keyExtractor}
             renderItem={renderSelectItem}
+            estimatedItemSize={26}
           />
         </Box>
       </Modal>
@@ -83,16 +87,18 @@ const Option = React.memo(
     return (
       <Pressable {...props}>
         <Box
-          borderColor="secondary"
-          paddingVertical="s"
+          borderBottomColor="secondary"
           borderBottomWidth={1}
           flexDirection="row"
           justifyContent="space-between"
           alignItems="center"
+          paddingVertical="m"
+          paddingHorizontal="s"
         >
-          <Text fontSize={20} color="primary">
+          <Text color="primary" fontSize={20} numberOfLines={1} flex={1}>
             {label}
           </Text>
+
           {selected && (
             <Ionicons
               name="checkmark-outline"
@@ -115,6 +121,8 @@ export interface SelectProps {
   options?: OptionItem[];
   onSelect?: (value: string | number) => void;
   placeholder?: string;
+  asBadge?: boolean;
+  optionsTitle?: string;
 }
 interface ControlledSelectProps<T extends FieldValues>
   extends SelectProps,
@@ -128,6 +136,8 @@ export const Select = (props: SelectProps) => {
     options = [],
     placeholder = 'select...',
     disabled = false,
+    asBadge = false,
+    optionsTitle,
     onSelect,
     onClick
   } = props;
@@ -152,40 +162,49 @@ export const Select = (props: SelectProps) => {
 
   return (
     <>
-      <Box>
-        {label && <Text>{label}</Text>}
-        <Pressable
-          disabled={disabled}
-          onPress={() => {
-            onClick && onClick();
-            modal.present();
-          }}
-        >
-          <Box
-            flexDirection="row"
-            justifyContent="space-between"
-            alignItems="center"
-            bg="secondary"
-            borderColor="secondary"
-            borderWidth={1}
-            borderRadius="sm"
-            height={40}
-            paddingVertical="s"
-            paddingHorizontal="m"
-          >
-            <Text color="primary" numberOfLines={1} flex={1}>
-              {textValue}
-            </Text>
-            <Ionicons
-              name="caret-down"
-              size={15}
-              color={theme.colors.primary}
-            />
-          </Box>
-        </Pressable>
-        {error && <Text color="destructive">{error}</Text>}
-      </Box>
+      <Pressable
+        disabled={disabled}
+        onPress={() => {
+          onClick && onClick();
+          modal.present();
+        }}
+      >
+        <Box>
+          {label && <Text>{label}</Text>}
+          {asBadge ? (
+            <Badge label={textValue} />
+          ) : (
+            <Box
+              flexDirection="row"
+              alignItems="center"
+              bg="secondary"
+              borderColor="secondary"
+              borderWidth={1}
+              borderRadius="sm"
+              height={40}
+              paddingVertical="s"
+              paddingHorizontal="m"
+            >
+              <Text
+                color="primary"
+                numberOfLines={1}
+                ellipsizeMode="tail"
+                flex={1}
+              >
+                {textValue}
+              </Text>
+              <Ionicons
+                name="chevron-down-outline"
+                size={16}
+                color={theme.colors.primary}
+              />
+            </Box>
+          )}
+          {error && <Text color="destructive">{error}</Text>}
+        </Box>
+      </Pressable>
       <Options
+        optionsTitle={optionsTitle}
         ref={modal.ref}
         value={value}
         options={options}
