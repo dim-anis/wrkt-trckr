@@ -39,6 +39,7 @@ export const Modal = React.forwardRef(
     {
       snapPoints: _snapPoints = ['60%'],
       title,
+      index = 0,
       detached = false,
       ...props
     }: ModalProps,
@@ -79,7 +80,7 @@ export const Modal = React.forwardRef(
         {...props}
         {...detachedProps}
         ref={modal.ref}
-        index={0}
+        index={index}
         snapPoints={snapPoints}
         backdropComponent={props.backdropComponent || renderBackdrop}
         handleComponent={renderHandleComponent}
