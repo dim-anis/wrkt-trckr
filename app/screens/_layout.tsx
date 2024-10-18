@@ -17,7 +17,7 @@ export default function Layout() {
       <Stack.Screen name="categories/index" />
       <Stack.Screen name="template/index" />
       <Stack.Screen name="exercises/index" />
-      <Stack.Screen name="selected-exercise/index" />
+      <Stack.Screen name="search" />
       <Stack.Screen name="settings" />
     </Stack>
   );
