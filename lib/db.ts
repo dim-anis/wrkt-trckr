@@ -13,6 +13,7 @@ const dropTablesQuery = `
   DROP TABLE IF EXISTS exercises;
   DROP TABLE IF EXISTS sets;
   DROP TABLE IF EXISTS workouts;
+  DROP TABLE IF EXISTS exercise_session;
 
   PRAGMA user_version = 0;
   PRAGMA writable_schema = 0;
@@ -100,7 +101,23 @@ export async function migrateDbIfNeeded(db: SQLiteDatabase) {
     PRAGMA table_info(workouts);
 `);
 
-    // #### create <set> table (id, exercise, reps, rpe, notes, created_at) ####
+    // #### create <exercise_session> table (id, workout_id, exercise_id, start_time, end_time, notes) ####
+
+    await db.execAsync(`
+    PRAGMA journal_mode = 'wal';
+    CREATE TABLE exercise_session (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      workout_id INTEGER NOT NULL,
+      exercise_id INTEGER NOT NULL,
+      start_time TEXT DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+      end_time TEXT,
+      notes TEXT,
+      weight_unit TEXT CHECK( weight_unit IN ('kg', 'lb', 'bw')) NOT NULL DEFAULT 'kg',
+      FOREIGN KEY (exercise_id) REFERENCES exercises(id),
+      FOREIGN KEY (workout_id) REFERENCES workouts(id)
+    );
+    PRAGMA table_info(exercise_session);
+    `);
 
     await db.execAsync(`
     PRAGMA journal_mode = 'wal';
