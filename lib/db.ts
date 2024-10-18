@@ -73,7 +73,7 @@ export async function migrateDbIfNeeded(db: SQLiteDatabase) {
       name TEXT NOT NULL UNIQUE, 
       is_compound INTEGER, 
       category_id INTEGER,
-      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      created_at TEXT DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
       FOREIGN KEY (category_id) REFERENCES exercise_categories(id)
     );`);
 
@@ -132,13 +132,13 @@ export async function migrateDbIfNeeded(db: SQLiteDatabase) {
       added_resistance REAL,
       reps INTEGER, 
       rpe REAL,
-      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      created_at TEXT DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
       FOREIGN KEY (exercise_id) REFERENCES exercises(id),
       FOREIGN KEY (exercise_session_id) REFERENCES exercise_session(id) ON DELETE CASCADE,
       FOREIGN KEY (workout_id) REFERENCES workouts(id) ON DELETE CASCADE
     );
     PRAGMA table_info(sets);
-`);
+    `);
 
     const setsGroupedByDate = sets.reduce(
       (result, currSet) => {
