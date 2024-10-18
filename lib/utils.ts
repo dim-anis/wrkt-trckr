@@ -1,6 +1,12 @@
-import { SetWithExerciseData, WorkoutSet } from '@/types';
+import { SetWithExerciseData, WeightUnit, WorkoutSet } from '@/types';
 import { Theme } from '@/lib/theme';
 import { showMessage } from 'react-native-flash-message';
+import {
+  FieldError,
+  FieldErrorsImpl,
+  FieldValues,
+  Merge
+} from 'react-hook-form';
 
 export type ValueOf<T> = T[keyof T];
 
@@ -74,6 +80,41 @@ export function groupSetsByExercise<T extends SetWithExerciseData>(
 
     return result;
   }, new Map<string, T[]>());
+}
+
+export type GroupedSet<T> = {
+  exerciseSessionId: number;
+  exerciseId: number;
+  weightUnit: WeightUnit;
+  exerciseName: string;
+  sets: T[];
+};
+
+export function groupSetsByExerciseSessionId<T extends SetWithExerciseData>(
+  sets: T[]
+): GroupedSet<T>[] {
+  const grouped: GroupedSet<T>[] = [];
+
+  sets.forEach(currSet => {
+    // Check if the last group is the same as the current exercise name
+    const lastGroup = grouped[grouped.length - 1];
+
+    if (lastGroup && lastGroup.exerciseName === currSet.exerciseName) {
+      // If it's the same exercise, push to the existing group's sets
+      lastGroup.sets.push(currSet);
+    } else {
+      // If it's a new exercise, create a new group
+      grouped.push({
+        exerciseName: currSet.exerciseName,
+        exerciseId: currSet.exercise_id,
+        weightUnit: currSet.weight_unit,
+        exerciseSessionId: currSet.exerciseSessionId,
+        sets: [currSet]
+      });
+    }
+  });
+
+  return grouped;
 }
 
 export function groupSetsByDate<T extends WorkoutSet>(
