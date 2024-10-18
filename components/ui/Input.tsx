@@ -16,11 +16,10 @@ import {
   useTheme
 } from '@shopify/restyle';
 import { Control, FieldValues, Path, useController } from 'react-hook-form';
-import { TextInput as DefaultTextInput } from 'react-native';
-import type { TextInput as TTextInput } from 'react-native';
+import { TextInput as RNTextInput, Pressable } from 'react-native';
 import { Box } from './Box';
 import { Text } from './Text';
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 
 type TextInputProps = SpacingProps<Theme> &
   BorderProps<Theme> &
@@ -28,7 +27,7 @@ type TextInputProps = SpacingProps<Theme> &
   ColorProps<Theme> &
   BackgroundColorProps<Theme> &
   VariantProps<Theme, 'inputVariants', 'inputVariant'> &
-  React.ComponentProps<typeof DefaultTextInput>;
+  React.ComponentProps<typeof RNTextInput>;
 
 const TextInput = createRestyleComponent<TextInputProps, Theme>(
   [
@@ -42,12 +41,15 @@ const TextInput = createRestyleComponent<TextInputProps, Theme>(
       property: 'inputVariant'
     })
   ],
-  DefaultTextInput
+  RNTextInput
 );
 
 interface NInputProps extends TextInputProps {
   label?: string;
   error?: string;
+  disabled?: boolean;
+  renderInputMessage?: boolean;
+  renderLabelInside?: boolean;
 }
 
 export type InputControllerType<T extends FieldValues> = {
@@ -60,59 +62,131 @@ interface ControlledInputProps<T extends FieldValues>
   extends NInputProps,
     InputControllerType<T> {}
 
-export const Input = React.forwardRef<TTextInput, NInputProps>((props, ref) => {
-  const { error, label, ...inputProps } = props;
-  const [isFocused, setIsFocused] = React.useState(false);
-  const onBlur = React.useCallback(() => setIsFocused(false), []);
-  const onFocus = React.useCallback(() => setIsFocused(true), []);
-  const inputVariant = isFocused ? 'focused' : error ? 'error' : undefined;
+export const Input = React.forwardRef<RNTextInput, NInputProps>(
+  (props, ref) => {
+    const {
+      flex,
+      error,
+      label,
+      disabled = false,
+      renderInputMessage = true,
+      renderLabelInside = false,
+      value,
+      ...inputProps
+    } = props;
+    const [isFocused, setIsFocused] = React.useState(false);
+    const onBlur = React.useCallback(() => setIsFocused(false), []);
+    const onFocus = React.useCallback(() => setIsFocused(true), []);
+    const inputVariant = isFocused ? 'focused' : error ? 'error' : undefined;
+    const inputBorderColor = isFocused
+      ? 'primary'
+      : error
+        ? 'destructive'
+        : 'secondary';
 
-  return (
-    <Box gap="s">
-      {label && (
-        <Text variant="inputLabel" color="primary">
-          {label}
-        </Text>
-      )}
-      <TextInput
-        ref={ref}
-        inputVariant={inputVariant}
-        onBlur={onBlur}
-        onFocus={onFocus}
-        {...inputProps}
-      />
-      {error && (
-        <Text variant="inputLabel" color="destructive">
-          {error}
-        </Text>
-      )}
-    </Box>
-  );
-});
+    const inputHeight = 50;
+    const fontSize = isFocused || value ? 12 : 16;
+
+    const inputRef = useRef<RNTextInput>(null);
+    React.useImperativeHandle(ref, () => inputRef.current as RNTextInput);
+
+    // ensure render cycle completes before focusing the input
+    const handlePress = () => {
+      setIsFocused(true);
+      setTimeout(() => {
+        if (inputRef.current) {
+          inputRef.current.focus();
+        }
+      }, 0);
+    };
+
+    return (
+      <Box gap="s" flex={flex}>
+        {renderLabelInside ? (
+          <Pressable onPress={handlePress} onBlur={onBlur}>
+            <Box
+              flexDirection="column"
+              justifyContent="center"
+              alignItems="center"
+              borderColor={inputBorderColor}
+              borderWidth={1}
+              borderRadius="sm"
+              height={inputHeight}
+              paddingVertical="s"
+              paddingHorizontal="m"
+            >
+              {label && (
+                <Text
+                  variant="inputLabel"
+                  color="mutedForeground"
+                  fontSize={fontSize}
+                >
+                  {label}
+                </Text>
+              )}
+              {(isFocused || value) && (
+                <TextInput
+                  ref={inputRef}
+                  value={value}
+                  style={{ fontSize: 18, fontWeight: '500' }}
+                  textAlign="center"
+                  onBlur={onBlur}
+                  onFocus={onFocus}
+                  color="primary"
+                  editable={!disabled}
+                  {...inputProps}
+                />
+              )}
+            </Box>
+          </Pressable>
+        ) : (
+          <>
+            {label && (
+              <Text variant="inputLabel" color="primary">
+                {label}
+              </Text>
+            )}
+            <TextInput
+              ref={ref}
+              value={value}
+              inputVariant={inputVariant}
+              onBlur={onBlur}
+              onFocus={onFocus}
+              editable={!disabled}
+              {...inputProps}
+            />
+          </>
+        )}
+        {error && renderInputMessage && (
+          <Text variant="inputLabel" color="destructive">
+            {error}
+          </Text>
+        )}
+      </Box>
+    );
+  }
+);
 
 export function ControlledInput<T extends FieldValues>(
   props: ControlledInputProps<T>
 ) {
   const theme = useTheme<Theme>();
   const { name, control, ...inputProps } = props;
-  const { field, fieldState } = useController({
+  const {
+    field: { ref, onChange, value },
+    fieldState
+  } = useController({
     control,
     name
   });
 
-  const value =
-    typeof field.value === 'string'
-      ? field.value
-      : typeof field.value === 'number'
-        ? `${field.value}`
-        : undefined;
   return (
     <Input
-      ref={field.ref}
+      ref={ref}
       autoCapitalize="none"
-      onChangeText={field.onChange}
-      placeholderTextColor={theme.colors.primary}
-      value={value}
+      onChangeText={onChange}
+      placeholderTextColor={theme.colors.mutedForeground}
+      value={value !== undefined && value !== null ? String(value) : ''}
       {...inputProps}
       error={fieldState.error?.message}
     />
