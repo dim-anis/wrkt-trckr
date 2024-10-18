@@ -10,6 +10,7 @@ import { useSQLiteContext } from 'expo-sqlite';
 import { UserSettings, TMenuItem } from '@/types';
 import { Appearance } from 'react-native';
 import MenuItem from '@/components/MenuItem';
+import { Ionicons } from '@expo/vector-icons';
 
 const settingsMenu: TMenuItem[] = [
   {
@@ -157,8 +158,20 @@ export default function Settings() {
                     <Pressable>
                       <MenuItem
                         label={item.label}
-                        icon={item.icon}
-                        iconRight="chevron-forward"
+                        iconLeft={
+                          <Ionicons
+                            name={item.icon}
+                            size={20}
+                            color={theme.colors.primary}
+                          />
+                        }
+                        iconRight={
+                          <Ionicons
+                            name="chevron-forward"
+                            size={20}
+                            color={theme.colors.primary}
+                          />
+                        }
                       />
                     </Pressable>
                   </ExpoLink>

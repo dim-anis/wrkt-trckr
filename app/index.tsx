@@ -585,7 +585,16 @@ export default function MainScreen() {
                   }
                 }}
               >
-                <MenuItem label={label} icon={icon} />
+                <MenuItem
+                  label={label}
+                  iconLeft={
+                    <Ionicons
+                      name={icon}
+                      size={20}
+                      color={theme.colors.primary}
+                    />
+                  }
+                />
               </Pressable>
             ))}
             <Pressable
@@ -594,7 +603,17 @@ export default function MainScreen() {
                 handleDeleteWorkout();
               }}
             >
-              <MenuItem label={'Delete workout'} icon={'trash-outline'} />
+              <MenuItem
+                label={'Delete workout'}
+                textColor="destructive"
+                iconLeft={
+                  <Ionicons
+                    name="trash-outline"
+                    size={20}
+                    color={theme.colors.destructive}
+                  />
+                }
+              />
             </Pressable>
           </Box>
         </BottomSheetView>
@@ -862,19 +881,40 @@ const ExerciseSets = ({
         <BottomSheetView>
           <Box padding="m" gap="m">
             <Pressable onPress={() => alert('duplicate')}>
-              <MenuItem label={'Duplicate exercise'} icon={'copy-outline'} />
+              <MenuItem
+                label={'Duplicate exercise'}
+                iconLeft={
+                  <Ionicons
+                    name="copy-outline"
+                    color={theme.colors.primary}
+                    size={20}
+                  />
+                }
+              />
             </Pressable>
             <Pressable onPress={() => alert('stats')}>
               <MenuItem
                 label={'See exercise stats'}
-                icon={'bar-chart-outline'}
+                iconLeft={
+                  <Ionicons
+                    name="bar-chart-outline"
+                    color={theme.colors.primary}
+                    size={20}
+                  />
+                }
               />
             </Pressable>
             <Pressable onPress={presentDangerous}>
               <MenuItem
                 label={'Delete exercise'}
-                icon={'trash-outline'}
-                color="red"
+                textColor="destructive"
+                iconLeft={
+                  <Ionicons
+                    name="trash-outline"
+                    color={theme.colors.destructive}
+                    size={20}
+                  />
+                }
               />
             </Pressable>
           </Box>
