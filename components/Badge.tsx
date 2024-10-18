@@ -1,20 +1,24 @@
-import { PropsWithChildren } from 'react';
+import { ReactElement } from 'react';
 import { Box } from './ui/Box';
 import { Text } from './ui/Text';
 
 type Props = {
   label: string;
+  icon?: ReactElement;
 };
 
-export default function Badge({ label, children }: PropsWithChildren<Props>) {
+export default function Badge({ label, icon }: Props) {
   return (
     <Box
       bg="primary"
       paddingVertical="xxs"
       paddingHorizontal="sm"
       alignItems="center"
+      justifyContent="center"
       borderRadius="md"
       borderWidth={1}
+      flexDirection="row"
+      gap="xxs"
     >
       <Text
         fontSize={12}
@@ -24,6 +28,7 @@ export default function Badge({ label, children }: PropsWithChildren<Props>) {
       >
         {label}
       </Text>
+      {icon && icon}
     </Box>
   );
 }
