@@ -21,9 +21,11 @@ import {
   useLocalSearchParams
 } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
-import React from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import {
   Control,
+  UseFormGetValues,
+  UseFormReset,
   UseFormWatch,
   useFieldArray,
   useForm,
@@ -161,9 +163,8 @@ export default function MainScreen() {
 
   const todayDateId = new Date().toISOString();
 
-  const [currentDate, setCurrentDate] = React.useState(
-    workoutDateId || todayDateId
-  );
+  const [isWorkoutSynched, setIsWorkoutSynched] = useState(true);
+  const [currentDate, setCurrentDate] = useState(workoutDateId || todayDateId);
 
   const {
     present: presentMore,
@@ -171,7 +172,14 @@ export default function MainScreen() {
     ref: refMore
   } = useModal();
 
-  const { handleSubmit, control, reset, watch } = useForm<Workout>({
+  const {
+    handleSubmit,
+    control,
+    reset,
+    watch,
+    getValues,
+    formState: { isDirty }
+  } = useForm<Workout>({
     resolver: zodResolver(workoutSchema),
     defaultValues: {
       exercises: []
@@ -183,8 +191,14 @@ export default function MainScreen() {
     name: 'exercises'
   });
 
+  useEffect(() => {
+    if (isDirty) {
+      setIsWorkoutSynched(false);
+    }
+  }, [isDirty]);
+
   useFocusEffect(
-    React.useCallback(() => {
+    useCallback(() => {
       let isActive = true;
 
       async function fetchSets() {
@@ -268,6 +282,15 @@ export default function MainScreen() {
     removeExercise(exerciseIndex);
 
     const { exerciseSessionId } = exerciseFields[exerciseIndex];
+
+    const updatedExercises = exerciseFields.filter(
+      (_, i) => i !== exerciseIndex
+    );
+
+    reset({
+      ...getValues(),
+      exercises: updatedExercises
+    });
 
     const result = await db.runAsync(
       `DELETE FROM exercise_session WHERE id = ?;`,
@@ -367,7 +390,9 @@ export default function MainScreen() {
 
       Keyboard.dismiss();
       showToast({ theme, title: 'Workout saved' });
-      router.navigate('/');
+
+      reset({ exercises }, { keepDirty: false });
+      setIsWorkoutSynched(true);
     } else {
       showToast({ theme, title: 'Failed to save workout' });
     }
@@ -391,9 +416,10 @@ export default function MainScreen() {
             >
               <Pressable
                 hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
-                onPress={() =>
-                  setCurrentDate(subDays(currentDate, 1).toISOString())
-                }
+                onPress={() => {
+                  setCurrentDate(subDays(currentDate, 1).toISOString());
+                  setIsWorkoutSynched(true);
+                }}
               >
                 <Ionicons
                   name="chevron-back"
@@ -408,9 +434,10 @@ export default function MainScreen() {
               </Text>
               <Pressable
                 hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
-                onPress={() =>
-                  setCurrentDate(addDays(currentDate, 1).toISOString())
-                }
+                onPress={() => {
+                  setCurrentDate(addDays(currentDate, 1).toISOString());
+                  setIsWorkoutSynched(true);
+                }}
               >
                 <Ionicons
                   name="chevron-forward"
@@ -422,22 +449,28 @@ export default function MainScreen() {
           ),
           headerRight: () => (
             <Box flexDirection="row" gap="m">
+              {exerciseFields.length > 0 && (
+                <Pressable
+                  hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
+                  onPress={handleSubmit(onSubmit)}
+                >
+                  <Ionicons
+                    name={
+                      isWorkoutSynched
+                        ? 'checkmark-circle'
+                        : 'checkmark-circle-outline'
+                    }
+                    color={theme.colors.green}
+                    size={20}
+                  />
+                </Pressable>
+              )}
               <Pressable
                 hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
                 onPress={() => setCurrentDate(todayDateId)}
               >
                 <Ionicons
                   name="calendar-number-outline"
-                  color={theme.colors.primary}
-                  size={20}
-                />
-              </Pressable>
-              <Pressable
-                hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
-                onPress={handleSubmit(onSubmit)}
-              >
-                <Ionicons
-                  name="save-outline"
                   color={theme.colors.primary}
                   size={20}
                 />
@@ -496,6 +529,9 @@ export default function MainScreen() {
               control={control}
               watch={watch}
               onRemoveExercise={() => handleDeleteExercise(exerciseIndex)}
+              onAddSet={() => setIsWorkoutSynched(false)}
+              reset={reset}
+              getValues={getValues}
               exerciseIndex={exerciseIndex}
               exerciseName={exercise.exerciseName}
             />
@@ -627,13 +663,19 @@ const ExerciseSets = ({
   watch,
   exerciseIndex,
   exerciseName,
-  onRemoveExercise
+  reset,
+  getValues,
+  onRemoveExercise,
+  onAddSet
 }: {
   control: Control<Workout>;
   watch: UseFormWatch<Workout>;
   exerciseIndex: number;
   exerciseName: string;
   onRemoveExercise: (exerciseIndex: number) => void;
+  onAddSet: () => void;
+  reset: UseFormReset<Workout>;
+  getValues: UseFormGetValues<Workout>;
 }) => {
   const theme = useTheme<Theme>();
   const db = useSQLiteContext();
@@ -650,11 +692,7 @@ const ExerciseSets = ({
 
   const { errors } = useFormState({ control });
 
-  const {
-    ref: refExerciseModal,
-    present: presentExerciseModal,
-    dismiss: dismissExerciseModal
-  } = useModal();
+  const { ref: refExerciseModal, present: presentExerciseModal } = useModal();
 
   const {
     ref: refDangerous,
@@ -681,6 +719,7 @@ const ExerciseSets = ({
     };
 
     appendSet(newSet || emptySet);
+    onAddSet();
   }
 
   async function onRemove(setIndex: number, exerciseIndex: number) {
@@ -690,6 +729,23 @@ const ExerciseSets = ({
       onRemoveExercise(exerciseIndex);
     } else {
       removeSet(setIndex);
+
+      const updatedSets = setFields.filter((_, i) => i !== setIndex);
+
+      reset({
+        ...getValues(),
+        exercises: [
+          ...getValues().exercises.map((exercise, idx) => {
+            if (idx === exerciseIndex) {
+              return {
+                ...exercise,
+                sets: updatedSets
+              };
+            }
+            return exercise;
+          })
+        ]
+      });
 
       if (set.id) {
         const result = await db.runAsync(
