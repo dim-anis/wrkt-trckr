@@ -216,6 +216,7 @@ export default function Search() {
             </Text>
             <FlatList
               data={filteredExercises}
+              keyExtractor={item => item.id.toString()}
               keyboardShouldPersistTaps="handled"
               renderItem={({ item: exercise }) => (
                 <Pressable
