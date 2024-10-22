@@ -786,6 +786,13 @@ const ExerciseSets = ({
       </Box>
       <Box gap="m">
         <ControlledInput
+          iconLeft={
+            <Ionicons
+              name="create-outline"
+              size={20}
+              color={theme.colors.mutedForeground}
+            />
+          }
           control={control}
           name={`exercises.${exerciseIndex}.exerciseSessionNotes` as const}
           placeholder="Add notes..."
