@@ -799,37 +799,41 @@ const ExerciseSets = ({
         />
         {setFields.map((set, setIndex) => {
           const error = errors?.exercises?.[exerciseIndex]?.sets?.[setIndex];
+          const setNumber = setIndex + 1;
 
           return (
             <Box gap="m" key={set.rfcId}>
-              <Box gap="s" flexDirection="row">
-                <Box
-                  flexDirection="column"
-                  justifyContent="center"
-                  alignItems="center"
-                  height={50}
-                  paddingVertical="s"
-                  paddingHorizontal="m"
-                  borderRadius="sm"
-                  bg={'secondary'}
-                  borderWidth={1}
-                  borderColor="secondary"
-                >
-                  <Text
-                    variant="inputLabel"
-                    color="mutedForeground"
-                    fontSize={12}
+              <Box gap="s" flexDirection="row" alignItems="flex-end">
+                <Box flexDirection="column" gap="s">
+                  {setNumber === 1 && (
+                    <Text
+                      variant="inputLabel"
+                      color="mutedForeground"
+                      textAlign="center"
+                    >
+                      {'Set'}
+                    </Text>
+                  )}
+                  <Box
+                    flexDirection="column"
+                    justifyContent="center"
+                    alignItems="center"
+                    height={40}
+                    paddingVertical="s"
+                    paddingHorizontal="m"
+                    borderRadius="sm"
+                    borderWidth={1}
+                    borderColor="secondary"
                   >
-                    {'Set'}
-                  </Text>
-                  <Text
-                    textAlign="center"
-                    color="primary"
-                    fontWeight={700}
-                    fontSize={18}
-                  >
-                    {setIndex + 1}
-                  </Text>
+                    <Text
+                      textAlign="center"
+                      color="mutedForeground"
+                      fontSize={18}
+                      fontWeight={500}
+                    >
+                      {setNumber}
+                    </Text>
+                  </Box>
                 </Box>
                 <Box
                   flexDirection="row"
@@ -837,46 +841,88 @@ const ExerciseSets = ({
                   flex={1}
                   gap={'s'}
                 >
-                  <ControlledInput
-                    name={
-                      `exercises.${exerciseIndex}.sets.${setIndex}.weight` as const
-                    }
-                    renderInputMessage={false}
-                    control={control}
-                    inputMode="numeric"
-                    flex={1}
-                    keyboardType="numeric"
-                    label="Weight"
-                    renderLabelInside
-                  />
+                  <Box flexDirection="column" gap="s" flex={1}>
+                    {setNumber === 1 && (
+                      <ControlledSelect
+                        control={control}
+                        name={
+                          `exercises.${exerciseIndex}.exerciseSessionWeightUnit` as const
+                        }
+                        placeholder="Select weight unit..."
+                        optionsTitle="Weight Input"
+                        options={[
+                          { label: 'kg', value: 'kg' },
+                          { label: 'lb', value: 'lb' },
+                          { label: 'bw', value: 'bw' }
+                        ]}
+                      >
+                        <Box
+                          flexDirection="row"
+                          alignItems="center"
+                          justifyContent="center"
+                          gap="xs"
+                        >
+                          <Text variant="inputLabel" color="mutedForeground">
+                            {`Weight`}
+                          </Text>
+
+                          <Ionicons
+                            name="chevron-expand"
+                            color={theme.colors.mutedForeground}
+                          />
+                        </Box>
+                      </ControlledSelect>
+                    )}
+                    <ControlledInput
+                      name={
+                        `exercises.${exerciseIndex}.sets.${setIndex}.weight` as const
+                      }
+                      withInputMessage={false}
+                      control={control}
+                      inputMode="numeric"
+                      flex={1}
+                      keyboardType="numeric"
+                      style={{ fontSize: 18, fontWeight: '500' }}
+                      textAlign="center"
+                      iconRight={
+                        <Text variant="inputLabel" color="mutedForeground">
+                          {watch(
+                            `exercises.${exerciseIndex}.exerciseSessionWeightUnit`
+                          )}
+                        </Text>
+                      }
+                    />
+                  </Box>
                   <ControlledInput
                     name={
                       `exercises.${exerciseIndex}.sets.${setIndex}.reps` as const
                     }
-                    renderInputMessage={false}
-                    label={'Reps'}
+                    withInputMessage={false}
+                    label={setNumber === 1 ? 'Reps' : undefined}
                     flex={1}
-                    renderLabelInside
+                    style={{ fontSize: 18, fontWeight: '500' }}
                     control={control}
                     inputMode="numeric"
                     keyboardType="numeric"
+                    textAlign="center"
                   />
                   <ControlledInput
                     name={
                       `exercises.${exerciseIndex}.sets.${setIndex}.rpe` as const
                     }
-                    renderInputMessage={false}
+                    withInputMessage={false}
                     flex={1}
-                    label={'RPE'}
-                    renderLabelInside
+                    label={setNumber === 1 ? 'RPE' : undefined}
+                    style={{ fontSize: 18, fontWeight: '500' }}
                     control={control}
                     inputMode="numeric"
                     keyboardType="numeric"
+                    textAlign="center"
                   />
                 </Box>
                 <Button
-                  height={50}
-                  width={50}
+                  height={40}
+                  width={40}
                   icon={
                     <Ionicons
                       name="trash-outline"
