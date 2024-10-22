@@ -150,37 +150,32 @@ export default function Search() {
           )
         }}
       />
-      <Box flex={1} gap="l">
-        <Box flexDirection="row" justifyContent="space-between">
-          <Input
-            autoFocus
-            autoCapitalize="none"
-            onChangeText={text => setSearchTerm(text)}
-            placeholder="Search exercises by name or category..."
-            placeholderTextColor={theme.colors.mutedForeground}
-            value={searchTerm}
-            flexGrow={1}
-          />
-
-          {searchTerm !== '' && (
-            <Box
-              width={40}
-              aspectRatio={'1/1'}
-              justifyContent="center"
-              alignItems="center"
-            >
-              <Pressable
-                onPress={() => setSearchTerm('')}
-                hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
-                accessibilityLabel="clear search input"
-                accessibilityRole="button"
-                accessibilityHint="clears the search input"
-              >
-                <Ionicons name="close" size={20} color={theme.colors.primary} />
+      <Box flex={1} gap={'l'}>
+        <Input
+          autoFocus
+          onChangeText={text => setSearchTerm(text)}
+          placeholder="Search exercises by name or category..."
+          value={searchTerm}
+          height={40}
+          iconLeft={
+            <Ionicons
+              name="search-outline"
+              color={theme.colors.mutedForeground}
+              size={20}
+            />
+          }
+          iconRight={
+            searchTerm ? (
+              <Pressable onPress={() => setSearchTerm('')}>
+                <Ionicons
+                  name="close-circle-outline"
+                  color={theme.colors.mutedForeground}
+                  size={20}
+                />
               </Pressable>
-            </Box>
-          )}
-        </Box>
+            ) : undefined
+          }
+        />
         {selectedExercises.size > 0 && (
           <Box gap="s">
             <Text color="mutedForeground">Selected exercises</Text>
@@ -207,7 +202,6 @@ export default function Search() {
             </Box>
           </Box>
         )}
-
         {filteredExercises.length === 0 ? (
           <Box flex={1} justifyContent="center" alignItems="center" gap="m">
             <Text color="primary" variant="header3">
