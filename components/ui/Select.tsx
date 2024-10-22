@@ -121,14 +121,13 @@ export interface SelectProps {
   options?: OptionItem[];
   onSelect?: (value: string | number) => void;
   placeholder?: string;
-  asBadge?: boolean;
   optionsTitle?: string;
 }
 interface ControlledSelectProps<T extends FieldValues>
   extends SelectProps,
     InputControllerType<T> {}
 
-export const Select = (props: SelectProps) => {
+export const Select = (props: React.PropsWithChildren<SelectProps>) => {
   const {
     label,
     value,
@@ -136,10 +135,10 @@ export const Select = (props: SelectProps) => {
     options = [],
     placeholder = 'select...',
     disabled = false,
-    asBadge = false,
     optionsTitle,
     onSelect,
-    onClick
+    onClick,
+    children
   } = props;
   const modal = useModal();
 
@@ -170,35 +169,37 @@ export const Select = (props: SelectProps) => {
         }}
       >
         <Box>
-          {label && <Text>{label}</Text>}
-          {asBadge ? (
-            <Badge label={textValue} />
+          {children ? (
+            children
           ) : (
-            <Box
-              flexDirection="row"
-              alignItems="center"
-              bg="secondary"
-              borderColor="secondary"
-              borderWidth={1}
-              borderRadius="sm"
-              height={40}
-              paddingVertical="s"
-              paddingHorizontal="m"
-            >
-              <Text
-                color="primary"
-                numberOfLines={1}
-                ellipsizeMode="tail"
-                flex={1}
+            <>
+              {label && <Text>{label}</Text>}
+              <Box
+                flexDirection="row"
+                alignItems="center"
+                bg="secondary"
+                borderColor="secondary"
+                borderWidth={1}
+                borderRadius="sm"
+                height={40}
+                paddingVertical="s"
+                paddingHorizontal="m"
               >
-                {textValue}
-              </Text>
-              <Ionicons
-                name="chevron-down-outline"
-                size={16}
-                color={theme.colors.primary}
-              />
-            </Box>
+                <Text
+                  color="primary"
+                  numberOfLines={1}
+                  ellipsizeMode="tail"
+                  flex={1}
+                >
+                  {textValue}
+                </Text>
+                <Ionicons
+                  name="chevron-down-outline"
+                  size={16}
+                  color={theme.colors.primary}
+                />
+              </Box>
+            </>
           )}
           {error && <Text color="destructive">{error}</Text>}
         </Box>
@@ -216,17 +217,24 @@ export const Select = (props: SelectProps) => {
 
 // only used with react-hook-form
 export function ControlledSelect<T extends FieldValues>(
-  props: ControlledSelectProps<T>
+  props: React.PropsWithChildren<ControlledSelectProps<T>>
 ) {
-  const { name, control, onSelect: onNSelect, onClick, ...selectProps } = props;
+  const {
+    name,
+    control,
+    onSelect: onRNSelect,
+    onClick,
+    children,
+    ...selectProps
+  } = props;
 
   const { field, fieldState } = useController({ control, name });
   const onSelect = React.useCallback(
     (value: string | number) => {
       field.onChange(value);
-      onNSelect?.(value);
+      onRNSelect?.(value);
     },
-    [field, onNSelect]
+    [field, onRNSelect]
   );
   return (
     <Select
@@ -235,6 +243,8 @@ export function ControlledSelect<T extends FieldValues>(
       value={field.value}
       error={fieldState.error?.message}
       {...selectProps}
-    />
+    >
+      {children}
+    </Select>
   );
 }
