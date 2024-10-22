@@ -228,7 +228,7 @@ export default function Search() {
                   }}
                 >
                   <Box
-                    borderBottomColor="secondary"
+                    borderBottomColor="border"
                     borderBottomWidth={1}
                     flexDirection="row"
                     justifyContent="space-between"
