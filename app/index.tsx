@@ -765,7 +765,7 @@ const ExerciseSets = ({
   }
 
   return (
-    <Box gap="m" marginVertical="s">
+    <Box gap="m" marginVertical="m">
       <Box gap="s">
         <Box
           flexDirection="row"
