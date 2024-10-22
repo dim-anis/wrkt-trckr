@@ -783,21 +783,6 @@ const ExerciseSets = ({
             />
           </Pressable>
         </Box>
-        <Box alignSelf="flex-end" minWidth={75}>
-          <ControlledSelect
-            control={control}
-            name={
-              `exercises.${exerciseIndex}.exerciseSessionWeightUnit` as const
-            }
-            placeholder="Select weight unit..."
-            optionsTitle="Weight Input"
-            options={[
-              { label: 'kg', value: 'kg' },
-              { label: 'lb', value: 'lb' },
-              { label: 'bw', value: 'bw' }
-            ]}
-          />
-        </Box>
       </Box>
       <Box gap="m">
         <ControlledInput
