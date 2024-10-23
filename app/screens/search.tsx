@@ -8,7 +8,7 @@ import { useTheme } from '@shopify/restyle';
 import { Stack, router, useLocalSearchParams } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
 import { useEffect, useState } from 'react';
-import { FlatList, Pressable, Vibration } from 'react-native';
+import { FlatList, Pressable } from 'react-native';
 import Button from '@/components/ui/Button';
 import { Radio } from '@/components/ui/Radio';
 import Badge from '@/components/Badge';
@@ -249,9 +249,8 @@ export default function Search() {
                 <Pressable
                   delayLongPress={250}
                   onPress={() => handleStartWorkout(exercise)}
-                  onLongPress={() => {
+                  onPress={() => {
                     handleExerciseChange(exercise.id, exercise);
-                    Vibration.vibrate(10);
                   }}
                 >
                   <Box
