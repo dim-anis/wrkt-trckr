@@ -2,7 +2,7 @@ import { Box } from '@/components/ui/Box';
 import { Text } from '@/components/ui/Text';
 import { Input } from '@/components/ui/Input';
 import { Theme } from '@/lib/theme';
-import { Exercise, Workout } from '@/types';
+import { Exercise, TMenuItem, Workout } from '@/types';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@shopify/restyle';
 import { Stack, router, useLocalSearchParams } from 'expo-router';
@@ -13,8 +13,21 @@ import Button from '@/components/ui/Button';
 import { Radio } from '@/components/ui/Radio';
 import Badge from '@/components/Badge';
 import { toDateId } from '@marceloterreiro/flash-calendar';
+import { Modal, useModal } from '@/components/ui/Modal';
+import { BottomSheetView } from '@gorhom/bottom-sheet';
+import MenuItem from '@/components/MenuItem';
+import { showToast } from '@/lib/utils';
 
 type SearchParams = { workoutDate?: string };
+
+const exerciseMenuItems: TMenuItem[] = [
+  {
+    id: 'settings-statistics',
+    href: '/screens/settings',
+    label: 'Exercise statistics',
+    icon: 'stats-chart-outline'
+  }
+];
 
 export default function Search() {
   const theme = useTheme<Theme>();
@@ -41,6 +54,21 @@ export default function Search() {
   }
 
   async function handleStartWorkout(exercise?: Exercise) {
+  async function handleDeleteExercise(exerciseId: number) {
+    setFilteredExercises(
+      filteredExercises.filter(exercise => exercise.id !== exerciseId)
+    );
+
+    const result = await db.runAsync(
+      `DELETE FROM exercises WHERE id = ?;`,
+      exerciseId
+    );
+
+    if (result.changes) {
+      showToast({ theme, title: 'Exercise deleted' });
+    }
+  }
+
     const dateISOString = workoutDate ?? new Date().toISOString();
 
     const existingWorkout = await db.getFirstAsync<Workout>(
@@ -115,6 +143,9 @@ export default function Search() {
       .then(results => setFilteredExercises(results))
       .catch(error => console.error('Error fetching exercises:', error));
   }, [searchTerm]);
+
+  const exerciseModal = useModal();
+  const dangerousActionModal = useModal();
 
   return (
     <Box flex={1} padding="m" backgroundColor="background">
@@ -274,19 +305,22 @@ export default function Search() {
                       >
                         {exercise.name}
                       </Text>
-                    </Box>
-                    <Pressable
-                      // onPress={() => presentEditExerciseModal(exercise)}
-                      hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
-                    >
-                      <Box paddingHorizontal="s">
+                      <Pressable
+                        hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
+                        onPress={() => {
+                          exerciseModal.present({
+                            exerciseId: exercise.id,
+                            exerciseName: exercise.name
+                          });
+                        }}
+                      >
                         <Ionicons
                           name="ellipsis-vertical"
                           size={20}
                           color={theme.colors.primary}
                         />
-                      </Box>
-                    </Pressable>
+                      </Pressable>
+                    </Box>
                   </Box>
                 </Pressable>
               )}
@@ -294,6 +328,98 @@ export default function Search() {
           </Box>
         )}
       </Box>
+      <Modal
+        ref={exerciseModal.ref}
+        enableDynamicSizing
+        snapPoints={[]}
+        title={'Exercise details'}
+        backgroundStyle={{ backgroundColor: theme.colors.background }}
+      >
+        {({ data }) => (
+          <BottomSheetView>
+            <Box padding="m" gap="m" flex={1}>
+              {exerciseMenuItems.map(({ href, label, icon }, index) => (
+                <Pressable
+                  key={index}
+                  onPress={() => {
+                    exerciseModal.dismiss();
+
+                    if (href) {
+                      router.push(href);
+                    }
+                  }}
+                >
+                  <MenuItem
+                    label={label}
+                    iconLeft={
+                      <Ionicons
+                        name={icon}
+                        size={20}
+                        color={theme.colors.primary}
+                      />
+                    }
+                  />
+                </Pressable>
+              ))}
+              <Pressable
+                onPress={() => {
+                  dangerousActionModal.present({
+                    exerciseId: data.exerciseId
+                  });
+                }}
+              >
+                <MenuItem
+                  label={'Delete exercise'}
+                  iconLeft={
+                    <Ionicons
+                      name="trash-outline"
+                      size={20}
+                      color={theme.colors.primary}
+                    />
+                  }
+                />
+              </Pressable>
+            </Box>
+          </BottomSheetView>
+        )}
+      </Modal>
+      <Modal
+        enableDynamicSizing
+        title={`Delete exercise?`}
+        ref={dangerousActionModal.ref}
+        index={0}
+        snapPoints={[]}
+        backgroundStyle={{
+          backgroundColor: theme.colors.background
+        }}
+      >
+        {({ data }) => (
+          <BottomSheetView>
+            <Box padding="m" flexDirection="row" gap="m">
+              <Box flex={1}>
+                <Button
+                  label="Cancel"
+                  variant="outline"
+                  onPress={() => {
+                    dangerousActionModal.dismiss();
+                  }}
+                />
+              </Box>
+              <Box flex={1}>
+                <Button
+                  label="Delete"
+                  variant="destructive"
+                  onPress={() => {
+                    exerciseModal.dismiss();
+                    dangerousActionModal.dismiss();
+                    handleDeleteExercise(data.exerciseId);
+                  }}
+                />
+              </Box>
+            </Box>
+          </BottomSheetView>
+        )}
+      </Modal>
     </Box>
   );
 }
