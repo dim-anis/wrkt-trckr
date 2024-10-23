@@ -156,16 +156,6 @@ export default function Search() {
               alignItems="center"
               gap="m"
             >
-              <Pressable
-                onPress={() => handleStartWorkout()}
-                hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
-              >
-                <Ionicons
-                  name="add-circle-outline"
-                  size={20}
-                  color={theme.colors.primary}
-                />
-              </Pressable>
               <Pressable hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}>
                 <Ionicons
                   name="ellipsis-vertical-outline"
@@ -320,6 +310,12 @@ export default function Search() {
                 </Pressable>
               )}
             />
+            {selectedExercises.size > 0 && (
+              <Button
+                label={`Add ${selectedExercises.size} exercise(s)`}
+                onPress={() => handleStartWorkout()}
+              />
+            )}
           </Box>
         )}
       </Box>
