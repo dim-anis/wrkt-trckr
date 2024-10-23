@@ -53,7 +53,6 @@ export default function Search() {
     });
   }
 
-  async function handleStartWorkout(exercise?: Exercise) {
   async function handleDeleteExercise(exerciseId: number) {
     setFilteredExercises(
       filteredExercises.filter(exercise => exercise.id !== exerciseId)
@@ -69,6 +68,7 @@ export default function Search() {
     }
   }
 
+  async function handleStartWorkout() {
     const dateISOString = workoutDate ?? new Date().toISOString();
 
     const existingWorkout = await db.getFirstAsync<Workout>(
@@ -77,10 +77,6 @@ export default function Search() {
     );
 
     let workoutId = existingWorkout?.id;
-
-    const exercisesToCreate = exercise
-      ? [exercise]
-      : [...selectedExercises.entries()].map(([_, exercise]) => exercise);
 
     if (!existingWorkout) {
       const createWorkoutResult = await db.runAsync(
@@ -97,7 +93,7 @@ export default function Search() {
 
     let statements: string[] = [];
 
-    for (const exercise of exercisesToCreate) {
+    for (const [_, exercise] of selectedExercises) {
       const createExerciseSessionResult = await db.runAsync(
         `INSERT INTO exercise_session (workout_id, exercise_id, start_time) VALUES (?, ?, ?)`,
         workoutId,
