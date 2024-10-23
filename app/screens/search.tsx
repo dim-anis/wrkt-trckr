@@ -238,7 +238,6 @@ export default function Search() {
               renderItem={({ item: exercise }) => (
                 <Pressable
                   delayLongPress={250}
-                  onPress={() => handleStartWorkout(exercise)}
                   onPress={() => {
                     handleExerciseChange(exercise.id, exercise);
                   }}
