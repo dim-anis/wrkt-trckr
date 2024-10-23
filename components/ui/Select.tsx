@@ -15,7 +15,6 @@ import { Text } from './Text';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@shopify/restyle';
 import { Theme } from '@/lib/theme';
-import Badge from '../Badge';
 import { FlashList } from '@shopify/flash-list';
 
 export type OptionItem = { label: string; value: string | number };
