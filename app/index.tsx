@@ -32,7 +32,6 @@ import {
   useFormState
 } from 'react-hook-form';
 import { Keyboard, Pressable, ScrollView } from 'react-native';
-import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import StatsCard from '@/components/StatsCard';
 import { ControlledSelect } from '@/components/ui/Select';
@@ -90,65 +89,6 @@ function getIconForFormFieldName(fieldName: string): IoniconsIconName {
 
   return formIcon;
 }
-
-const setSchema = z.object({
-  id: z.number().optional(),
-  exerciseId: z.number().optional(),
-  createdAt: z.string(),
-  weight: z.preprocess(
-    val => (val === '' ? null : val),
-    z.coerce.number().positive().min(0.5).nullable()
-  ),
-  reps: z.preprocess(
-    val => (val === '' ? undefined : val),
-    z.coerce.number().int().positive().min(1)
-  ),
-  rpe: z
-    .preprocess(
-      val => (val === '' ? null : val),
-      z.union([z.coerce.number().min(5).max(10), z.null()])
-    )
-    .default(null),
-  addedResistance: z
-    .preprocess(
-      val => (val === '' ? null : val),
-      z.union([z.coerce.number().min(0.5), z.null()])
-    )
-    .default(null)
-});
-
-const workoutSessionSchema = z.object({
-  workoutId: z.number(),
-  workoutStart: z.string()
-});
-
-const exerciseSessionSchema = z.object({
-  exerciseName: z.string().min(1),
-  exerciseId: z.number().optional(),
-  exerciseSessionNotes: z
-    .preprocess(val => (val === '' ? null : val), z.string().nullable())
-    .default(null),
-  exerciseSessionId: z.number(),
-  exerciseSessionWeightUnit: z.enum(['kg', 'lb', 'bw'])
-});
-
-const exerciseSessionWithSetsSchema = exerciseSessionSchema
-  .merge(workoutSessionSchema)
-  .extend({
-    sets: z.array(setSchema).nonempty('At least one set is required')
-  });
-
-const workoutSchema = z.object({
-  exercises: z
-    .array(exerciseSessionWithSetsSchema)
-    .nonempty('At least one set is required')
-});
-
-type Set = z.infer<typeof setSchema>;
-type Workout = z.infer<typeof workoutSchema>;
-type WorkoutSession = z.infer<typeof workoutSessionSchema>;
-type ExerciseSession = z.infer<typeof exerciseSessionSchema>;
-type ExerciseSessionWithSets = z.infer<typeof exerciseSessionWithSetsSchema>;
 
 type SearchParams = {
   workoutDateId: string;
