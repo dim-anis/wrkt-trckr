@@ -270,7 +270,20 @@ const darkTheme: Theme = {
     green: `hsl(${globals.dark['--green']})`,
     yellow: `hsl(${globals.dark['--yellow']})`,
     orange: `hsl(${globals.dark['--orange']})`,
-    red: `hsl(${globals.dark['--red']})`
+    red: `hsl(${globals.dark['--red']})`,
+    chart_1: `hsl(${globals.dark['--chart-1']})`,
+    chart_2: `hsl(${globals.dark['--chart-2']})`,
+    chart_3: `hsl(${globals.dark['--chart-3']})`,
+    chart_4: `hsl(${globals.dark['--chart-4']})`,
+    chart_5: `hsl(${globals.dark['--chart-5']})`,
+    chart_1_rgb: `${globals.dark['--chart-1-rgb']}`,
+    chart_2_rgb: `${globals.dark['--chart-2-rgb']}`,
+    chart_3_rgb: `${globals.dark['--chart-3-rgb']}`,
+    chart_4_rgb: `${globals.dark['--chart-4-rgb']}`,
+    chart_5_rgb: `${globals.dark['--chart-5-rgb']}`,
+    chartLabel: `${globals.dark['--chart-label']}`,
+    chartLine: `${globals.dark['--chart-line']}`,
+    chartTitle: `${globals.dark['--chart-title']}`
   }
 };
 
