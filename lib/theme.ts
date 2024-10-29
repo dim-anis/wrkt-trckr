@@ -148,6 +148,7 @@ const theme = createTheme({
     sm: globals.light['--radius'] - 4
   },
   spacing: {
+    none: 0,
     xxs: 2,
     xs: 4,
     s: 8,
