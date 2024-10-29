@@ -35,6 +35,21 @@ const globals = {
     '--orange': '22 99% 52%',
     '--red': '347 87% 44%',
 
+    '--chart-1': '173 58% 39%',
+    '--chart-2': '12 76% 61%',
+    '--chart-3': '197 37% 24%',
+    '--chart-4': '43 74% 66%',
+    '--chart-5': '27 87% 67%',
+
+    '--chart-1-rgb': '42, 157, 144',
+    '--chart-2-rgb': '231, 110, 80',
+    '--chart-3-rgb': '39, 71, 84',
+    '--chart-4-rgb': '232, 196, 104',
+    '--chart-5-rgb': '244, 164, 98',
+    '--chart-label': '100, 116, 139',
+    '--chart-line': '100, 116, 139',
+    '--chart-title': '2, 8, 23',
+
     '--radius': 8
   },
   dark: {
@@ -71,6 +86,21 @@ const globals = {
     '--orange': '23 92% 75%',
     '--red': '343 81% 75%',
 
+    '--chart-1': '220 70% 50%',
+    '--chart-2': '340 75% 55%',
+    '--chart-3': '30 80% 55%',
+    '--chart-4': '280 65% 60%',
+    '--chart-5': '160 60% 45%',
+
+    '--chart-1-rgb': '38, 98, 217',
+    '--chart-2-rgb': '226, 54, 112',
+    '--chart-3-rgb': '232, 140, 48',
+    '--chart-4-rgb': '175, 87, 219',
+    '--chart-5-rgb': '46, 184, 138',
+    '--chart-label': '148, 163, 184',
+    '--chart-line': '148, 163, 184',
+    '--chart-title': '248, 250, 252',
+
     '--radius': 8
   }
 };
@@ -97,7 +127,20 @@ const theme = createTheme({
     green: `hsl(${globals.light['--green']})`,
     yellow: `hsl(${globals.light['--yellow']})`,
     orange: `hsl(${globals.light['--orange']})`,
-    red: `hsl(${globals.light['--red']})`
+    red: `hsl(${globals.light['--red']})`,
+    chart_1: `hsl(${globals.light['--chart-1']})`,
+    chart_2: `hsl(${globals.light['--chart-2']})`,
+    chart_3: `hsl(${globals.light['--chart-3']})`,
+    chart_4: `hsl(${globals.light['--chart-4']})`,
+    chart_5: `hsl(${globals.light['--chart-5']})`,
+    chart_1_rgb: `${globals.light['--chart-1-rgb']}`,
+    chart_2_rgb: `${globals.light['--chart-2-rgb']}`,
+    chart_3_rgb: `${globals.light['--chart-3-rgb']}`,
+    chart_4_rgb: `${globals.light['--chart-4-rgb']}`,
+    chart_5_rgb: `${globals.light['--chart-5-rgb']}`,
+    chartLabel: `${globals.light['--chart-label']}`,
+    chartLine: `${globals.light['--chart-line']}`,
+    chartTitle: `${globals.light['--chart-title']}`
   },
   borderRadii: {
     lg: globals.light['--radius'],
