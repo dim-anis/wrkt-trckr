@@ -6,14 +6,16 @@ import { Theme } from '@/lib/theme';
 
 type Props = {
   label: string;
-  icon?: ReactElement;
+  iconLeft?: ReactElement;
+  iconRight?: ReactElement;
 } & BoxProps<Theme> &
   TextProps<Theme>;
 
 export default function Badge(props: Props) {
   const {
     label,
-    icon,
+    iconLeft,
+    iconRight,
     fontSize = 12,
     lineHeight = 16,
     fontWeight = 700,
@@ -33,6 +35,7 @@ export default function Badge(props: Props) {
       gap="xxs"
       {...viewProps}
     >
+      {iconLeft && <Box marginRight="xs">{iconLeft}</Box>}
       <Text
         fontSize={fontSize}
         lineHeight={lineHeight}
@@ -41,7 +44,7 @@ export default function Badge(props: Props) {
       >
         {label}
       </Text>
-      {icon && icon}
+      {iconRight && <Box marginLeft="xs">{iconRight}</Box>}
     </Box>
   );
 }
