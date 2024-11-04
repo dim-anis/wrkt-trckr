@@ -72,13 +72,13 @@ export default function Search() {
     const dateISOString = workoutDate ?? new Date().toISOString();
 
     const existingWorkout = await db.getFirstAsync<Workout>(
-      'SELECT * from workouts WHERE created_at = ?;',
+      'SELECT * from workouts WHERE DATE(created_at) = ?;',
       toDateId(new Date(dateISOString))
     );
 
     let workoutId = existingWorkout?.id;
 
-    if (!existingWorkout) {
+    if (!workoutId) {
       const createWorkoutResult = await db.runAsync(
         `INSERT INTO workouts (created_at) VALUES (?);`,
         dateISOString
