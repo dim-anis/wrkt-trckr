@@ -35,7 +35,7 @@ function keyExtractor(item: OptionItem) {
 export const Options = React.forwardRef<BottomSheetModal, OptionsProps>(
   ({ options, onSelect, value, optionsTitle }, ref) => {
     const theme = useTheme<Theme>();
-    const height = options.length * 70 + 100;
+    const height = options.length * 60 + 100;
     const snapPoints = React.useMemo(() => [height], [height]);
 
     const renderSelectItem = React.useCallback(
