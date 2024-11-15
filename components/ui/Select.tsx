@@ -184,7 +184,7 @@ export const Select = (props: React.PropsWithChildren<SelectProps>) => {
                 paddingHorizontal="m"
               >
                 <Text
-                  color="primary"
+                  color={disabled ? 'mutedForeground' : 'primary'}
                   numberOfLines={1}
                   ellipsizeMode="tail"
                   flex={1}
@@ -194,7 +194,11 @@ export const Select = (props: React.PropsWithChildren<SelectProps>) => {
                 <Ionicons
                   name="chevron-down-outline"
                   size={16}
-                  color={theme.colors.primary}
+                  color={
+                    disabled
+                      ? theme.colors.mutedForeground
+                      : theme.colors.primary
+                  }
                 />
               </Box>
             </>
