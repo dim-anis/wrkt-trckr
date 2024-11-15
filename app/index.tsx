@@ -8,8 +8,9 @@ import { Modal, useModal } from '@/components/ui/Modal';
 import { Text } from '@/components/ui/Text';
 import { Theme } from '@/lib/theme';
 import { toDateId } from '@marceloterreiro/flash-calendar';
-import { getAverageRPE, getTotalVolume, showToast } from '@/lib/utils';
-import { IoniconsIconName, type TMenuItem } from '@/types';
+import { groupSetsByExerciseSessionId, showToast } from '@/lib/utils';
+import { type TMenuItem } from '@/types';
+import { getIconForFormFieldName } from '@/lib/utils';
 import { Ionicons } from '@expo/vector-icons';
 import { BottomSheetView } from '@gorhom/bottom-sheet';
 import { useTheme } from '@shopify/restyle';
@@ -33,14 +34,20 @@ import {
 } from 'react-hook-form';
 import { Keyboard, Pressable, ScrollView } from 'react-native';
 import { zodResolver } from '@hookform/resolvers/zod';
-import StatsCard from '@/components/StatsCard';
 import { ControlledSelect } from '@/components/ui/Select';
 import FormError from '@/components/ui/FormError';
+import {
+  WorkoutSession,
+  Set,
+  ExerciseSessionWithExercise,
+  WorkoutSessionWithExercises,
+  workoutSessionWithExercisesSchema
+} from '@/lib/zodSchemas';
 
 const menuItems: TMenuItem[] = [
   {
     id: 'settings-statistics',
-    href: '/screens/settings',
+    href: '/screens/stats',
     label: 'Statistics',
     icon: 'stats-chart-outline'
   },
@@ -70,26 +77,6 @@ const menuItems: TMenuItem[] = [
   }
 ];
 
-function getIconForFormFieldName(fieldName: string): IoniconsIconName {
-  let formIcon: IoniconsIconName;
-
-  switch (fieldName) {
-    case 'weight':
-      formIcon = 'barbell-outline';
-      break;
-    case 'rpe':
-      formIcon = 'speedometer-outline';
-      break;
-    case 'reps':
-      formIcon = 'repeat-outline';
-      break;
-    default:
-      formIcon = 'alert-circle-outline';
-  }
-
-  return formIcon;
-}
-
 type SearchParams = {
   workoutDateId: string;
   workoutId: string;
@@ -99,7 +86,7 @@ export default function MainScreen() {
   const theme = useTheme<Theme>();
   const db = useSQLiteContext();
 
-  const { workoutDateId, workoutId } = useLocalSearchParams<SearchParams>();
+  const { workoutDateId } = useLocalSearchParams<SearchParams>();
 
   const todayDateId = new Date().toISOString();
 
@@ -119,8 +106,8 @@ export default function MainScreen() {
     watch,
     getValues,
     formState: { isDirty }
-  } = useForm<Workout>({
-    resolver: zodResolver(workoutSchema),
+  } = useForm<WorkoutSessionWithExercises>({
+    resolver: zodResolver(workoutSessionWithExercisesSchema),
     defaultValues: {
       exercises: []
     }
@@ -143,7 +130,7 @@ export default function MainScreen() {
 
       async function fetchSets() {
         const result = await db.getAllAsync<
-          WorkoutSession & ExerciseSession & Set
+          WorkoutSession & ExerciseSessionWithExercise & Set
         >(
           `
             SELECT
@@ -181,33 +168,19 @@ export default function MainScreen() {
           toDateId(new Date(currentDate))
         );
 
-        const groupedExercises: ExerciseSessionWithSets[] = [];
+        const groupedExercises = groupSetsByExerciseSessionId(result);
 
-        result.forEach(currSet => {
-          // Check if the last group is the same as the current exercise name
-          const lastGroup = groupedExercises[groupedExercises.length - 1];
-
-          if (lastGroup && lastGroup.exerciseName === currSet.exerciseName) {
-            // If it's the same exercise, push to the existing group's sets
-            lastGroup.sets.push(currSet);
-          } else {
-            // If it's a new exercise, create a new group
-            groupedExercises.push({
-              workoutId: currSet.workoutId,
-              workoutStart: currSet.workoutStart,
-              exerciseName: currSet.exerciseName,
-              exerciseId: currSet.exerciseId,
-              exerciseSessionWeightUnit: currSet.exerciseSessionWeightUnit,
-              exerciseSessionNotes: currSet.exerciseSessionNotes,
-              exerciseSessionId: currSet.exerciseSessionId,
-              sets: [currSet]
-            });
-          }
-        });
-
-        reset({
-          exercises: result.length > 0 ? groupedExercises : []
-        });
+        reset(
+          result.length > 0
+            ? {
+                workoutId: result[0].workoutId,
+                workoutStart: result[0].workoutStart,
+                exercises: groupedExercises
+              }
+            : {
+                exercises: []
+              }
+        );
       }
 
       fetchSets();
@@ -245,7 +218,7 @@ export default function MainScreen() {
   async function handleDeleteWorkout() {
     reset({ exercises: [] });
 
-    const workoutId = exerciseFields[0].workoutId;
+    const workoutId = getValues('workoutId');
 
     if (workoutId) {
       const result = await db.runAsync(
@@ -259,23 +232,21 @@ export default function MainScreen() {
     }
   }
 
-  async function onSubmit(formData: Workout) {
+  async function onSubmit(formData: WorkoutSessionWithExercises) {
     const { success, data, error } =
-      await workoutSchema.safeParseAsync(formData);
+      await workoutSessionWithExercisesSchema.safeParseAsync(formData);
 
     if (error) {
       console.error(error);
     }
 
     if (success) {
-      const { exercises } = data;
+      const { workoutId, exercises } = data;
 
       await db.withTransactionAsync(async () => {
         for (const exercise of exercises) {
           const {
             sets,
-            exerciseId,
-            workoutId,
             exerciseSessionId,
             exerciseSessionNotes,
             exerciseSessionWeightUnit
@@ -294,6 +265,7 @@ export default function MainScreen() {
               addedResistance,
               rpe,
               createdAt,
+              exerciseId,
               id: setId
             } = set;
 
@@ -440,19 +412,6 @@ export default function MainScreen() {
           )
         }}
       />
-
-      {/* {exerciseFields.length > 0 && ( */}
-      {/*   <Box flexDirection="row" gap="xs"> */}
-      {/*     <StatsCard */}
-      {/*       title="Total volume" */}
-      {/*       value={getTotalVolume([ */}
-      {/*         ...exerciseFields.map(exercise => [...exercise.sets]) */}
-      {/*       ])} */}
-      {/*       unit={'kg'} */}
-      {/*     /> */}
-      {/*     <StatsCard title="Average RPE" value={getAverageRPE(fields)} /> */}
-      {/*   </Box> */}
-      {/* )} */}
 
       {exerciseFields.length === 0 && (
         <Box flex={1} justifyContent="center" alignItems="center">
@@ -608,14 +567,14 @@ const ExerciseSets = ({
   onRemoveExercise,
   onAddSet
 }: {
-  control: Control<Workout>;
-  watch: UseFormWatch<Workout>;
+  control: Control<WorkoutSessionWithExercises>;
+  watch: UseFormWatch<WorkoutSessionWithExercises>;
   exerciseIndex: number;
   exerciseName: string;
   onRemoveExercise: (exerciseIndex: number) => void;
   onAddSet: () => void;
-  reset: UseFormReset<Workout>;
-  getValues: UseFormGetValues<Workout>;
+  reset: UseFormReset<WorkoutSessionWithExercises>;
+  getValues: UseFormGetValues<WorkoutSessionWithExercises>;
 }) => {
   const theme = useTheme<Theme>();
   const db = useSQLiteContext();
