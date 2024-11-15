@@ -1,12 +1,21 @@
-import { SetWithExerciseData, WeightUnit, WorkoutSet } from '@/types';
+import { IoniconsIconName } from '@/types';
 import { Theme } from '@/lib/theme';
 import { showMessage } from 'react-native-flash-message';
 import {
-  FieldError,
-  FieldErrorsImpl,
-  FieldValues,
-  Merge
-} from 'react-hook-form';
+  ExerciseSessionWithSets,
+  WorkoutSession,
+  Set,
+  ExerciseSessionWithExercise,
+  Exercise
+} from './zodSchemas';
+import {
+  addDays,
+  endOfMonth,
+  endOfWeek,
+  startOfMonth,
+  startOfWeek,
+  subDays
+} from 'date-fns';
 
 export type ValueOf<T> = T[keyof T];
 
@@ -29,19 +38,30 @@ export function roundToNearestHalf(number: number) {
 }
 
 // TODO: handle bodyweight exercises
-export function getTotalVolume(sets: WorkoutSet[]) {
-  return sets.reduce(
-    (totalVolume, set) => totalVolume + set.weight * set.reps,
-    0
-  );
+export function getTotalVolume(sets: Set[]) {
+  const userWeight = 92;
+  return sets.reduce((totalVolume, set) => {
+    let setVolume: number;
+
+    // bw exercise
+    if (set.weight === null) {
+      setVolume = set.addedResistance
+        ? (set.addedResistance + userWeight) * set.reps
+        : userWeight * set.reps;
+    } else {
+      // weighted exercise
+      setVolume = set.weight * set.reps;
+    }
+    return totalVolume + setVolume;
+  }, 0);
 }
 
-export const getAverageRPE = (sets: WorkoutSet[]) =>
+export const getAverageRPE = (sets: Set[]) =>
   roundToNearestHalf(
     sets.reduce((total, set) => total + (set.rpe ?? 0), 0) / sets.length
   );
 
-export const calculateExerciseStats = (sets: WorkoutSet[]) => {
+export const calculateExerciseStats = (sets: Set[]) => {
   return { totalVolume: getTotalVolume(sets), averageRPE: getAverageRPE(sets) };
 };
 
@@ -69,46 +89,24 @@ export function showToast({ theme, title, subtitle }: Toast) {
     }
   });
 }
-export function groupSetsByExercise<T extends SetWithExerciseData>(
-  sets: T[]
-): Map<string, T[]> {
-  return sets.reduce((result, currSet) => {
-    const exerciseSets = result.get(currSet.exerciseName) || [];
-    exerciseSets.push(currSet);
 
-    result.set(currSet.exerciseName, exerciseSets);
-
-    return result;
-  }, new Map<string, T[]>());
-}
-
-export type GroupedSet<T> = {
-  exerciseSessionId: number;
-  exerciseId: number;
-  weightUnit: WeightUnit;
-  exerciseName: string;
-  sets: T[];
-};
-
-export function groupSetsByExerciseSessionId<T extends SetWithExerciseData>(
-  sets: T[]
-): GroupedSet<T>[] {
-  const grouped: GroupedSet<T>[] = [];
+export function groupSetsByExercise(
+  sets: (Set & Exercise)[]
+): (Exercise & { sets: Set[] })[] {
+  const grouped: (Exercise & { sets: Set[] })[] = [];
 
   sets.forEach(currSet => {
     // Check if the last group is the same as the current exercise name
     const lastGroup = grouped[grouped.length - 1];
 
-    if (lastGroup && lastGroup.exerciseName === currSet.exerciseName) {
+    if (lastGroup && lastGroup.exerciseId === currSet.exerciseId) {
       // If it's the same exercise, push to the existing group's sets
       lastGroup.sets.push(currSet);
     } else {
       // If it's a new exercise, create a new group
       grouped.push({
+        exerciseId: currSet.exerciseId,
         exerciseName: currSet.exerciseName,
-        exerciseId: currSet.exercise_id,
-        weightUnit: currSet.weight_unit,
-        exerciseSessionId: currSet.exerciseSessionId,
         sets: [currSet]
       });
     }
@@ -117,17 +115,62 @@ export function groupSetsByExerciseSessionId<T extends SetWithExerciseData>(
   return grouped;
 }
 
-export function groupSetsByDate<T extends WorkoutSet>(
+export function groupSetsByWorkoutId<T extends WorkoutSession>(
   sets: T[]
-): Map<string, T[]> {
-  return sets.reduce((result, currSet) => {
-    const exerciseSets = result.get(currSet.created_at) || [];
-    exerciseSets.push(currSet);
+): (WorkoutSession & { sets: T[] })[] {
+  const grouped: (WorkoutSession & { sets: T[] })[] = [];
 
-    result.set(currSet.created_at, exerciseSets);
+  sets.forEach(currSet => {
+    // Check if the last group is the same as the current exercise name
+    const lastGroup = grouped[grouped.length - 1];
 
-    return result;
-  }, new Map<string, T[]>());
+    if (lastGroup && lastGroup.workoutId === currSet.workoutId) {
+      // If it's the same exercise, push to the existing group's sets
+      lastGroup.sets.push(currSet);
+    } else {
+      // If it's a new exercise, create a new group
+      grouped.push({
+        workoutId: currSet.workoutId,
+        workoutStart: currSet.workoutStart,
+        sets: [currSet]
+      });
+    }
+  });
+
+  return grouped;
+}
+
+export function groupSetsByExerciseSessionId(
+  sets: (WorkoutSession & ExerciseSessionWithExercise & Set)[]
+): ExerciseSessionWithSets[] {
+  const grouped: (WorkoutSession & ExerciseSessionWithSets)[] = [];
+
+  sets.forEach(currSet => {
+    // Check if the last group is the same as the current exercise name
+    const lastGroup = grouped[grouped.length - 1];
+
+    if (
+      lastGroup &&
+      lastGroup.exerciseSessionId === currSet.exerciseSessionId
+    ) {
+      // If it's the same exercise, push to the existing group's sets
+      lastGroup.sets.push(currSet);
+    } else {
+      // If it's a new exercise, create a new group
+      grouped.push({
+        exerciseId: currSet.exerciseId,
+        exerciseName: currSet.exerciseName,
+        workoutId: currSet.workoutId,
+        workoutStart: currSet.workoutStart,
+        exerciseSessionWeightUnit: currSet.exerciseSessionWeightUnit,
+        exerciseSessionNotes: currSet.exerciseSessionNotes,
+        exerciseSessionId: currSet.exerciseSessionId,
+        sets: [currSet]
+      });
+    }
+  });
+
+  return grouped;
 }
 
 export function countItems<T extends string | number>(items: T[]) {
@@ -150,3 +193,55 @@ export const formErrors = {
   exercise: {},
   category: {}
 };
+
+export function getIconForFormFieldName(fieldName: string): IoniconsIconName {
+  let formIcon: IoniconsIconName;
+
+  switch (fieldName) {
+    case 'weight':
+      formIcon = 'barbell-outline';
+      break;
+    case 'rpe':
+      formIcon = 'speedometer-outline';
+      break;
+    case 'reps':
+      formIcon = 'repeat-outline';
+      break;
+    default:
+      formIcon = 'alert-circle-outline';
+  }
+
+  return formIcon;
+}
+
+export function formatNumber(num: number) {
+  return new Intl.NumberFormat().format(num);
+}
+
+export function getFourWeekRange(startDate: Date, direction: 0 | 1 | -1 = 0) {
+  const adjustedStart = addDays(startDate, direction * 28);
+  const from = subDays(adjustedStart, 27);
+  const to = adjustedStart;
+
+  return { from, to };
+}
+
+export function getDefaultDateRange(type: 'Day' | 'Week' | '4W') {
+  const date = new Date();
+  switch (type) {
+    case 'Day':
+      return { from: date, to: date };
+    case 'Week':
+      return {
+        from: startOfWeek(date, { weekStartsOn: 1 }),
+        to: endOfWeek(date, { weekStartsOn: 1 })
+      };
+    case '4W':
+      return getFourWeekRange(date);
+    default:
+      return {
+        from: startOfWeek(date, { weekStartsOn: 1 }),
+        to: endOfWeek(date, { weekStartsOn: 1 })
+      };
+  }
+}
