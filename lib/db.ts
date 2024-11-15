@@ -152,26 +152,66 @@ export async function migrateDbIfNeeded(db: SQLiteDatabase) {
       {} as Record<string, (typeof sets)[number][]>
     );
 
-    [...Object.entries(setsGroupedByDate)].forEach(
-      async ([workoutDate, workoutSets]) => {
-        const createWorkoutResult = await db.runAsync(
-          `INSERT INTO workouts (created_at) VALUES (?);`,
-          workoutDate
+    for (const [workoutDate, workoutSets] of Object.entries(
+      setsGroupedByDate
+    )) {
+      const createWorkoutResult = await db.runAsync(
+        `INSERT INTO workouts (created_at) VALUES (?);`,
+        workoutDate
+      );
+
+      const workoutId = createWorkoutResult.lastInsertRowId;
+
+      const groupedExerciseSessions: {
+        exerciseId: number;
+        createdAt: string;
+        sets: typeof workoutSets;
+      }[] = [];
+
+      workoutSets.forEach(currSet => {
+        // Check if the last group is the same as the current exercise name
+        const lastGroup =
+          groupedExerciseSessions[groupedExerciseSessions.length - 1];
+
+        if (lastGroup && lastGroup.exerciseId === currSet.exercise_id) {
+          // If it's the same exercise, push to the existing group's sets
+          lastGroup.sets.push(currSet);
+        } else {
+          // If it's a new exercise, create a new group
+          groupedExerciseSessions.push({
+            createdAt: currSet.date,
+            exerciseId: currSet.exercise_id,
+            sets: [currSet]
+          });
+        }
+      });
+
+      for (const exerciseSession of groupedExerciseSessions) {
+        const createExerciseSessionResult = await db.runAsync(
+          `INSERT INTO exercise_session (workout_id, exercise_id, start_time) VALUES (?, ?, ?)`,
+          [workoutId, exerciseSession.exerciseId, exerciseSession.createdAt]
         );
 
-        const workoutId = createWorkoutResult.lastInsertRowId;
+        const exerciseSessionId = createExerciseSessionResult.lastInsertRowId;
 
-        const createWorkoutSets = workoutSets.reduce(
-          (stmt, set) =>
-            stmt.concat(
-              `INSERT INTO sets (workout_id, exercise_id, weight, reps, created_at) VALUES (${workoutId}, ${set.exercise_id}, ${set.metric_weight}, ${set.reps}, '${set.date}');`
-            ),
-          ''
-        );
-
-        await db.execAsync(createWorkoutSets);
+        await db.withTransactionAsync(async () => {
+          for (const set of exerciseSession.sets) {
+            const { exercise_id, metric_weight, reps, date } = set;
+            await db.runAsync(
+              `INSERT INTO sets (workout_id, exercise_id, exercise_session_id, weight, reps, created_at) VALUES (?,?,?,?,?,?);`,
+              [
+                workoutId,
+                exercise_id,
+                exerciseSessionId,
+                metric_weight,
+                reps,
+                date
+              ]
+            );
+          }
+        });
       }
-    );
+    }
 
     currentDbVersion = 1;
   }
