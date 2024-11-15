@@ -2,35 +2,30 @@ import { FlashList } from '@shopify/flash-list';
 import { Link as ExpoLink } from 'expo-router';
 import { Box } from './ui/Box';
 import { Text } from './ui/Text';
-import { SetWithExerciseData } from '@/types';
 import { Pressable } from 'react-native';
 import ExerciseCard from './ExerciseCard';
 import SetList from './SetList';
-import { calculateExerciseStats, groupSetsByExercise } from '@/lib/utils';
+import { calculateExerciseStats } from '@/lib/utils';
 import React from 'react';
 import { BottomSheetFlatList } from '@gorhom/bottom-sheet';
-import { toDateId } from '@marceloterreiro/flash-calendar';
-
-type ListItem = [exerciseName: string, sets: SetWithExerciseData[]];
+import { ExerciseSessionWithSets } from '@/lib/zodSchemas';
 
 type Props = {
   renderedInBottomSheet?: boolean;
-  data?: SetWithExerciseData[];
+  data: ExerciseSessionWithSets[];
 };
 
-const renderSetsItem = ([exerciseName, sets]: ListItem) => {
-  const [firstSet, ...restSets] = sets;
-
+export const renderSetsItem = ({
+  exerciseName,
+  sets
+}: ExerciseSessionWithSets) => {
   return (
     <Box marginTop="s">
       <ExpoLink
         href={{
-          pathname: `/screens/selected-exercise`,
+          pathname: `/`,
           params: {
-            categoryId: firstSet.category_id,
-            exerciseId: firstSet.exercise_id,
-            exerciseName: exerciseName,
-            timestamp: toDateId(new Date(firstSet.created_at))
+            workoutDateId: ''
           }
         }}
         asChild
@@ -52,20 +47,17 @@ export default function WorkoutList({
   data = [],
   renderedInBottomSheet = false
 }: Props) {
-  const setsGroupedByExercise = groupSetsByExercise(data);
-  const listData = [...setsGroupedByExercise.entries()];
-
   return (
     <>
       {data.length ? (
         renderedInBottomSheet ? (
           <BottomSheetFlatList
-            data={listData}
+            data={data}
             renderItem={({ item }) => renderSetsItem(item)}
           />
         ) : (
           <FlashList
-            data={listData}
+            data={data}
             estimatedItemSize={20}
             renderItem={({ item }) => renderSetsItem(item)}
           />
