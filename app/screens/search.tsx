@@ -23,7 +23,7 @@ type SearchParams = { workoutDate?: string };
 const exerciseMenuItems: TMenuItem[] = [
   {
     id: 'settings-statistics',
-    href: '/screens/settings',
+    href: '/screens/stats',
     label: 'Exercise statistics',
     icon: 'stats-chart-outline'
   }
@@ -201,7 +201,7 @@ export default function Search() {
                 <Badge
                   key={exercise.id}
                   label={exercise.name}
-                  icon={
+                  iconRight={
                     <Pressable
                       hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
                       onPress={() =>
