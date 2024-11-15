@@ -7,9 +7,10 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@shopify/restyle';
 import { Theme } from '@/lib/theme';
 import Badge from './Badge';
+import { Set } from '@/lib/zodSchemas';
 
 type Props = {
-  sets: WorkoutSet[];
+  sets: Set[];
   onSetSelected?: (set: WorkoutSet | undefined) => void;
   selectedSet?: WorkoutSet;
 };
