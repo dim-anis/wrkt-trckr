@@ -19,6 +19,7 @@ export default function Layout() {
       <Stack.Screen name="exercises/index" />
       <Stack.Screen name="search" />
       <Stack.Screen name="settings" />
+      <Stack.Screen name="stats" />
     </Stack>
   );
 }
