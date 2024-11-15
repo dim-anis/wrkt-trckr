@@ -176,7 +176,6 @@ export const Select = (props: React.PropsWithChildren<SelectProps>) => {
               <Box
                 flexDirection="row"
                 alignItems="center"
-                bg="secondary"
                 borderColor="secondary"
                 borderWidth={1}
                 borderRadius="sm"
