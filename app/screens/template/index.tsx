@@ -2,7 +2,12 @@ import TemplateList from '@/components/TemplateList';
 import { Box } from '@/components/ui/Box';
 import { Theme } from '@/lib/theme';
 import { countItems, groupSetsByDate, groupSetsByExercise } from '@/lib/utils';
-import { SetWithExerciseAndCategoryData, TemplateDataItem } from '@/types';
+import { ExerciseCategory, Set } from '@/lib/zodSchemas';
+import {
+  Exercise,
+  SetWithExerciseAndCategoryData,
+  TemplateDataItem
+} from '@/types';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@shopify/restyle';
 import { Stack, useFocusEffect } from 'expo-router';
@@ -35,7 +40,7 @@ function createTemplateTitle(
   return `${title} Focus`;
 }
 
-function getTemplateData(sets: SetWithExerciseAndCategoryData[]) {
+function getTemplateData(sets: (Set & Exercise & ExerciseCategory)[]) {
   const categories = sets.map(set => set.categoryName);
 
   const sortedCategories = [...countItems(categories)]
@@ -90,31 +95,25 @@ export default function SelectTemplate() {
 
   const setsByDate = groupSetsByDate(sets);
 
-  const uniqueSets = [...setsByDate].reduce(
-    (templates, [, currWorkoutSets]) => {
-      const key = createWorkoutKey(currWorkoutSets);
-      const value = templates.get(key);
+  const uniqueSets = setsByDate.reduce((templates, [, currWorkoutSets]) => {
+    const key = createWorkoutKey(currWorkoutSets);
+    const value = templates.get(key);
 
-      if (!value) {
-        templates.set(key, [
-          {
-            templateSets: currWorkoutSets,
-            ...getTemplateData(currWorkoutSets)
-          }
-        ]);
-      } else {
-        templates.set(key, [
-          ...value,
-          { templateSets: currWorkoutSets, ...getTemplateData(currWorkoutSets) }
-        ]);
-      }
-      return templates;
-    },
-    new Map<
-      string,
-      (TemplateDataItem & { templateSets: SetWithExerciseAndCategoryData[] })[]
-    >()
-  );
+    if (!value) {
+      templates.set(key, [
+        {
+          templateSets: currWorkoutSets,
+          ...getTemplateData(currWorkoutSets)
+        }
+      ]);
+    } else {
+      templates.set(key, [
+        ...value,
+        { templateSets: currWorkoutSets, ...getTemplateData(currWorkoutSets) }
+      ]);
+    }
+    return templates;
+  }, new Map<string, (TemplateDataItem & { templateSets: SetWithExerciseAndCategoryData[] })[]>());
 
   const templatesSortedByPopularity = [...uniqueSets.entries()].sort(
     ([, setsA], [, setsB]) => setsB.length - setsA.length
