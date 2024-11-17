@@ -401,29 +401,39 @@ export default function MainScreen() {
         }}
       />
 
-      {exerciseFields.length === 0 && (
-        <Box flex={1} justifyContent="center" alignItems="center">
-          <Text color="primary" variant="header3">
-            No exercises recorded
-          </Text>
-        </Box>
-      )}
-
-      <ScrollView keyboardShouldPersistTaps="handled">
-        {exerciseFields.map((exercise, exerciseIndex) => (
-          <Box key={exercise.id} gap="m">
-            <ExerciseSets
-              control={control}
-              watch={watch}
-              onRemoveExercise={() => handleDeleteExercise(exerciseIndex)}
-              onAddSet={() => setIsWorkoutSynched(false)}
-              reset={reset}
-              getValues={getValues}
-              exerciseIndex={exerciseIndex}
-              exerciseName={exercise.exerciseName}
-            />
+      <ScrollView
+        keyboardShouldPersistTaps="handled"
+        contentContainerStyle={{
+          flexGrow: 1
+        }}
+        style={{ backgroundColor: theme.colors.background }}
+      >
+        {exerciseFields.length === 0 ? (
+          <Box flex={1} justifyContent="center" alignItems="center">
+            <Text color="primary" variant="header3">
+              No exercises recorded
+            </Text>
           </Box>
-        ))}
+        ) : (
+          exerciseFields.map(
+            ({ id: exerciseId, exerciseName }, exerciseIndex) => (
+              <Box key={exerciseId} gap="m">
+                <ExerciseSession
+                  {...{
+                    control,
+                    watch,
+                    reset,
+                    getValues,
+                    exerciseIndex,
+                    exerciseName
+                  }}
+                  onRemoveExercise={() => handleDeleteExercise(exerciseIndex)}
+                  onAddSet={() => setIsWorkoutSynched(false)}
+                />
+              </Box>
+            )
+          )
+        )}
       </ScrollView>
 
       {exerciseFields.length > 0 ? (
