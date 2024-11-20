@@ -674,23 +674,27 @@ export default function DayTab() {
                                   {workoutStats.setCount}
                                 </Text>
                               </Box>
-                              <Separator
-                                orientation="vertical"
-                                backgroundColor="mutedForeground"
-                              />
-                              <Box flexDirection="column" gap="xs">
-                                <Text color="mutedForeground" fontSize={14}>
-                                  Time
-                                </Text>
-                                <Text color="primary" fontSize={20}>
-                                  {formatDuration(
-                                    intervalToDuration({
-                                      start: 0,
-                                      end: workoutStats.totalTime
-                                    })
-                                  )}
-                                </Text>
-                              </Box>
+                              {workoutStats.totalTime > 0 && (
+                                <>
+                                  <Separator
+                                    orientation="vertical"
+                                    backgroundColor="mutedForeground"
+                                  />
+                                  <Box flexDirection="column" gap="xs">
+                                    <Text color="mutedForeground" fontSize={14}>
+                                      Time
+                                    </Text>
+                                    <Text color="primary" fontSize={20}>
+                                      {formatDuration(
+                                        intervalToDuration({
+                                          start: 0,
+                                          end: workoutStats.totalTime
+                                        })
+                                      )}
+                                    </Text>
+                                  </Box>
+                                </>
+                              )}
                             </Box>
                           </Box>
                           <Box
