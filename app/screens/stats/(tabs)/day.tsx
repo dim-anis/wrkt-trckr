@@ -49,6 +49,7 @@ const interBold = require('../../../../assets/fonts/Inter-Bold.ttf');
 type SearchParams = {
   dateRangeFrom?: string;
   dateRangeTo?: string;
+  workoutIndex?: string;
 };
 
 type Set = WorkoutSession & {
@@ -97,6 +98,7 @@ type Category = {
 
 type Workout = {
   workoutId: number;
+  workoutName: string | null;
   workoutStart: string;
   workoutStats: WorkoutStat;
   exercises: Exercise[];
@@ -121,12 +123,14 @@ export default function DayTab() {
   const chartTitleColor = `rgb(${theme.colors.chartTitle})`;
   const chartSubtitleColor = `rgba(${theme.colors.chartTitle}, 0.6)`;
 
-  const { dateRangeFrom } = useLocalSearchParams<SearchParams>();
+  const { dateRangeFrom, workoutIndex } = useLocalSearchParams<SearchParams>();
   const [dateRange, setDateRange] = useState<{ from: Date; to: Date }>(
     getDefaultDateRange('Day')
   );
   const [workouts, setWorkouts] = useState<Workout[]>([]);
-  const [sameDayWorkoutIndex, setSameDayWorkoutIndex] = useState(0);
+  const [sameDayWorkoutIndex, setSameDayWorkoutIndex] = useState(
+    Number(workoutIndex) || 0
+  );
   const [selectedChartType, setSelectedChartType] = useState<
     (typeof chartOptions)[number]
   >(chartOptions[0]);
@@ -183,6 +187,7 @@ export default function DayTab() {
           SELECT
               calendar.day AS workoutStart,
               w.id AS workoutId,
+              w.workout_name as workoutName,
               e.name AS exerciseName,
               e.id AS exerciseId,
               ec.name AS exerciseCategoryName,
@@ -369,7 +374,8 @@ export default function DayTab() {
                 flexDirection="column"
               >
                 <Text variant="body" fontWeight={500} color="primary">
-                  {`Workout #${sameDayWorkoutIndex + 1}`}
+                  {workouts[sameDayWorkoutIndex].workoutName ??
+                    `Workout #${sameDayWorkoutIndex + 1}`}
                 </Text>
                 <Text fontSize={12} color="mutedForeground">
                   {`${format(workouts[sameDayWorkoutIndex].workoutStart, 'hh:mm b')}`}
@@ -620,7 +626,8 @@ export default function DayTab() {
                                 fontSize={18}
                                 fontWeight={500}
                               >
-                                {`Workout #${idx + 1}`}
+                                {workouts[idx].workoutName ??
+                                  `Workout #${idx + 1}`}
                               </Text>
                               <Text color="mutedForeground" fontSize={12}>
                                 {format(workoutStart, 'EEE, MMM dd, yyyy')}
@@ -813,6 +820,7 @@ function groupSetsByWorkout(sets: Set[]): Workout[] {
     const {
       workoutId,
       workoutStart,
+      workoutName,
       exerciseName,
       exerciseId,
       exerciseCategoryName,
@@ -828,6 +836,7 @@ function groupSetsByWorkout(sets: Set[]): Workout[] {
     if (!workouts[workoutId]) {
       workouts[workoutId] = {
         workoutId,
+        workoutName,
         workoutStart,
         workoutStats: {
           volume: 0,
