@@ -67,6 +67,13 @@ export const workoutSessionWithExercisesSchema = workoutSessionSchema.extend({
     .nonempty('At least one set is required')
 });
 
+export const workoutSchema = z.object({
+  workouts: z
+    .array(workoutSessionWithExercisesSchema)
+    .nonempty('At least one set is required')
+});
+export type Workout = z.infer<typeof workoutSchema>;
+
 export type ExerciseCategory = z.infer<typeof exerciseCategorySchema>;
 export type Set = z.infer<typeof setSchema>;
 export type WorkoutSession = z.infer<typeof workoutSessionSchema>;
