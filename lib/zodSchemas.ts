@@ -55,6 +55,9 @@ export const exerciseSessionWithSetsSchema = exerciseSessionSchema
 
 export const workoutSessionSchema = z.object({
   workoutId: z.number(),
+  workoutName: z
+    .preprocess(val => (val === '' ? null : val), z.string().nullable())
+    .default(null),
   workoutStart: z.string()
 });
 
