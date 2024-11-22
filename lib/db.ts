@@ -96,7 +96,9 @@ export async function migrateDbIfNeeded(db: SQLiteDatabase) {
     PRAGMA journal_mode = 'wal';
     CREATE TABLE workouts (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
-      created_at TEXT DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+      workout_name TEXT,
+      created_at TEXT DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+      ended_at TEXT
     );
     PRAGMA table_info(workouts);
     `);
