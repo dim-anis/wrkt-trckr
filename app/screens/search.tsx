@@ -35,11 +35,38 @@ export default function Search() {
 
   let { workoutDate } = useLocalSearchParams<SearchParams>();
 
+  const dateISOString = workoutDate ?? new Date().toISOString();
+
   const [searchTerm, setSearchTerm] = useState('');
+  const [workout, setWorkout] = useState<Workout | undefined | null>(undefined);
   const [filteredExercises, setFilteredExercises] = useState<Exercise[]>([]);
   const [selectedExercises, setSelectedExercises] = useState<
     Map<number, Exercise>
   >(new Map());
+
+  useEffect(() => {
+    let isActive = true;
+    const fetchWorkout = async () => {
+      try {
+        const existingWorkout = await db.getAllAsync<Workout>(
+          'SELECT * from workouts WHERE DATE(created_at) = ? AND ended_at IS NULL;',
+          toDateId(new Date(dateISOString))
+        );
+
+        if (existingWorkout.length) {
+          setWorkout(existingWorkout.at(-1));
+        }
+      } catch (error) {
+        console.log(error);
+      }
+    };
+
+    fetchWorkout();
+
+    return () => {
+      isActive = false;
+    };
+  }, [dateISOString]);
 
   function handleExerciseChange(exerciseId: number, exercise: Exercise) {
     setSelectedExercises(prevSelected => {
@@ -69,15 +96,7 @@ export default function Search() {
   }
 
   async function handleStartWorkout() {
-    const dateISOString = workoutDate ?? new Date().toISOString();
-
-    const existingWorkout = await db.getFirstAsync<Workout>(
-      'SELECT * from workouts WHERE DATE(created_at) = ?;',
-      toDateId(new Date(dateISOString))
-    );
-
-    let workoutId = existingWorkout?.id;
-
+    let workoutId = workout?.id;
     if (!workoutId) {
       const createWorkoutResult = await db.runAsync(
         `INSERT INTO workouts (created_at) VALUES (?);`,
@@ -85,10 +104,6 @@ export default function Search() {
       );
 
       workoutId = createWorkoutResult.lastInsertRowId;
-    }
-
-    if (!workoutId) {
-      return;
     }
 
     let statements: string[] = [];
@@ -116,6 +131,31 @@ export default function Search() {
     });
   }
 
+  async function handleStartNextWorkout() {
+    // TODO: use last set's created_at OR current time as the ended_at
+    const updateWorkoutResult = await db.runAsync(
+      `UPDATE workouts SET ended_at = ? WHERE id = ?;`,
+      new Date().toISOString(),
+      workout?.id!
+    );
+
+    if (updateWorkoutResult.changes > 0) {
+      setWorkout(null);
+
+      // handleStartWorkout();
+      //
+      // startNextWorkoutModal.dismiss();
+    }
+  }
+  useEffect(() => {
+    if (workout === null) {
+      handleStartWorkout();
+      startNextWorkoutModal.dismiss();
+
+      setWorkout(undefined);
+    }
+  }, [workout]);
+
   function searchExercises(searchTerm: string): Promise<Exercise[]> {
     return new Promise(async (resolve, reject) => {
       try {
@@ -142,6 +182,7 @@ export default function Search() {
 
   const exerciseModal = useModal();
   const dangerousActionModal = useModal();
+  const startNextWorkoutModal = useModal();
 
   return (
     <Box flex={1} padding="m" backgroundColor="background">
@@ -310,14 +351,54 @@ export default function Search() {
               )}
             />
             {selectedExercises.size > 0 && (
-              <Button
-                label={`Add ${selectedExercises.size} exercise(s)`}
-                onPress={() => handleStartWorkout()}
-              />
+              <Box gap="s">
+                <Button
+                  label={`Add ${selectedExercises.size} exercise(s)`}
+                  onPress={() => handleStartWorkout()}
+                />
+                {workout?.id && (
+                  <Button
+                    label={`Start new workout`}
+                    variant="secondary"
+                    onPress={startNextWorkoutModal.present}
+                  />
+                )}
+              </Box>
             )}
           </Box>
         )}
       </Box>
+      <Modal
+        ref={startNextWorkoutModal.ref}
+        enableDynamicSizing
+        snapPoints={[]}
+        title={'Finish previous workout'}
+        backgroundStyle={{ backgroundColor: theme.colors.background }}
+      >
+        <BottomSheetView>
+          <Box padding="m" gap="m">
+            <Text variant="body" color="mutedForeground">
+              You must finish the previous workout before you start a new one.
+            </Text>
+            <Box flexDirection="row" gap="m">
+              <Box flex={1}>
+                <Button
+                  label="Cancel"
+                  variant="secondary"
+                  onPress={startNextWorkoutModal.dismiss}
+                />
+              </Box>
+              <Box flex={1}>
+                <Button
+                  label="Finish workout"
+                  variant="destructive"
+                  onPress={handleStartNextWorkout}
+                />
+              </Box>
+            </Box>
+          </Box>
+        </BottomSheetView>
+      </Modal>
       <Modal
         ref={exerciseModal.ref}
         enableDynamicSizing
