@@ -8,14 +8,7 @@ import {
   ExerciseSessionWithExercise,
   Exercise
 } from './zodSchemas';
-import {
-  addDays,
-  endOfMonth,
-  endOfWeek,
-  startOfMonth,
-  startOfWeek,
-  subDays
-} from 'date-fns';
+import { addDays, endOfWeek, startOfWeek, subDays } from 'date-fns';
 
 export type ValueOf<T> = T[keyof T];
 
