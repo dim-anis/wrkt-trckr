@@ -1,36 +1,35 @@
 import MenuItem from '@/components/MenuItem';
-import { Link as ExpoLink } from 'expo-router';
+import { Link as ExpoLink, useFocusEffect } from 'expo-router';
 import { Box } from '@/components/ui/Box';
 import Link from '@/components/ui/Link';
 import { Modal, useModal } from '@/components/ui/Modal';
 import { Text } from '@/components/ui/Text';
 import { Theme } from '@/lib/theme';
 import { toDateId } from '@marceloterreiro/flash-calendar';
-import { groupSetsByExerciseSessionId, showToast } from '@/lib/utils';
+import {
+  groupSetsByExerciseSessionId,
+  groupSetsByWorkoutId,
+  showToast
+} from '@/lib/utils';
 import { type TMenuItem } from '@/types';
 import { Ionicons } from '@expo/vector-icons';
 import { BottomSheetView } from '@gorhom/bottom-sheet';
 import { useTheme } from '@shopify/restyle';
 import { addDays, format, isToday, subDays } from 'date-fns';
-import {
-  Stack,
-  router,
-  useFocusEffect,
-  useLocalSearchParams
-} from 'expo-router';
+import { Stack, router, useLocalSearchParams } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
 import { useCallback, useEffect, useState } from 'react';
-import { useFieldArray, useForm } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import { Keyboard, Pressable, ScrollView } from 'react-native';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
   WorkoutSession,
   Set,
   ExerciseSessionWithExercise,
-  WorkoutSessionWithExercises,
-  workoutSessionWithExercisesSchema
+  Workout,
+  workoutSchema
 } from '@/lib/zodSchemas';
-import ExerciseSession from './ExerciseSession';
+import WorkoutSessions from './WorkoutSessions';
 
 const menuItems: TMenuItem[] = [
   {
@@ -93,23 +92,16 @@ export default function MainScreen() {
     reset,
     watch,
     getValues,
+    setValue,
+    setFocus,
     formState: { isDirty }
-  } = useForm<WorkoutSessionWithExercises>({
-    resolver: zodResolver(workoutSessionWithExercisesSchema),
-    defaultValues: {
-      exercises: []
-    }
-  });
-
-  const { fields: exerciseFields, remove: removeExercise } = useFieldArray({
-    control,
-    name: 'exercises'
+  } = useForm<Workout>({
+    resolver: zodResolver(workoutSchema),
+    defaultValues: { workouts: [] }
   });
 
   useEffect(() => {
-    if (isDirty) {
-      setIsWorkoutSynched(false);
-    }
+    setIsWorkoutSynched(!isDirty);
   }, [isDirty]);
 
   useFocusEffect(
@@ -124,6 +116,7 @@ export default function MainScreen() {
             SELECT
                 w.id as workoutId,
                 w.created_at as workoutStart,
+                w.workout_name as workoutName,
                 es.id as exerciseSessionId,
                 es.notes as exerciseSessionNotes,
                 es.weight_unit as exerciseSessionWeightUnit,
@@ -133,7 +126,6 @@ export default function MainScreen() {
                 s.rpe,
                 s.created_at as createdAt,
                 s.exercise_id as exerciseId,
-                s.workout_id as workoutId,
                 e.name as exerciseName
             FROM
                 workouts w
@@ -156,19 +148,17 @@ export default function MainScreen() {
           toDateId(new Date(currentDate))
         );
 
-        const groupedExercises = groupSetsByExerciseSessionId(result);
-
-        reset(
-          result.length > 0
-            ? {
-                workoutId: result[0].workoutId,
-                workoutStart: result[0].workoutStart,
-                exercises: groupedExercises
-              }
-            : {
-                exercises: []
-              }
+        const workouts = groupSetsByWorkoutId(result);
+        const workoutsWithSetsGroupedByExercise = workouts.map(
+          ({ sets, workoutId, workoutName, workoutStart }) => ({
+            workoutId,
+            workoutStart,
+            workoutName,
+            exercises: groupSetsByExerciseSessionId(sets)
+          })
         );
+
+        reset({ workouts: workoutsWithSetsGroupedByExercise });
       }
 
       fetchSets();
@@ -179,110 +169,84 @@ export default function MainScreen() {
     }, [currentDate])
   );
 
-  async function handleDeleteExercise(exerciseIndex: number) {
-    removeExercise(exerciseIndex);
+  const workoutSessions = getValues('workouts');
 
-    const { exerciseSessionId } = exerciseFields[exerciseIndex];
-
-    const updatedExercises = exerciseFields.filter(
-      (_, i) => i !== exerciseIndex
-    );
-
-    reset({
-      ...getValues(),
-      exercises: updatedExercises
-    });
-
-    const result = await db.runAsync(
-      `DELETE FROM exercise_session WHERE id = ?;`,
-      exerciseSessionId
-    );
-
-    if (result.changes) {
-      showToast({ theme, title: 'Exercise deleted' });
-    }
-  }
-
-  async function handleDeleteWorkout() {
-    reset({ exercises: [] });
-
-    const workoutId = getValues('workoutId');
-
-    if (workoutId) {
-      const result = await db.runAsync(
-        `DELETE FROM workouts WHERE id = ?;`,
-        workoutId
-      );
-
-      if (result.changes) {
-        showToast({ theme, title: 'Workout deleted' });
-      }
-    }
-  }
-
-  async function onSubmit(formData: WorkoutSessionWithExercises) {
+  async function onSubmit(formData: Workout) {
     const { success, data, error } =
-      await workoutSessionWithExercisesSchema.safeParseAsync(formData);
+      await workoutSchema.safeParseAsync(formData);
 
     if (error) {
       console.error(error);
     }
 
     if (success) {
-      const { workoutId, exercises } = data;
+      const { workouts } = data;
 
       await db.withTransactionAsync(async () => {
-        for (const exercise of exercises) {
-          const {
-            sets,
-            exerciseSessionId,
-            exerciseSessionNotes,
-            exerciseSessionWeightUnit
-          } = exercise;
-
-          // Update exercise session
+        for (const workout of workouts) {
+          const { exercises, workoutId, workoutName } = workout;
           await db.runAsync(
-            `UPDATE exercise_session SET notes = ?, weight_unit = ? WHERE id = ?;`,
-            [exerciseSessionNotes, exerciseSessionWeightUnit, exerciseSessionId]
+            `UPDATE workouts SET workout_name = ? WHERE id = ?`,
+            workoutName,
+            workoutId
           );
 
-          for (const set of sets) {
+          for (const exercise of exercises) {
             const {
-              weight,
-              reps,
-              addedResistance,
-              rpe,
-              createdAt,
-              exerciseId,
-              id: setId
-            } = set;
+              sets,
+              exerciseSessionId,
+              exerciseSessionNotes,
+              exerciseSessionWeightUnit
+            } = exercise;
 
-            if (setId) {
-              // Update existing set
-              await db.runAsync(
-                `UPDATE sets SET weight = ?, reps = ?, added_resistance = ?, rpe = ? WHERE id = ?;`,
-                [weight, reps, addedResistance, rpe, setId]
-              );
-            } else {
-              // Insert new set
-              if (!exerciseId) {
-                throw new Error(`No exerciseId found`);
-              }
+            // Update exercise session
+            await db.runAsync(
+              `UPDATE exercise_session SET notes = ?, weight_unit = ? WHERE id = ?;`,
+              [
+                exerciseSessionNotes,
+                exerciseSessionWeightUnit,
+                exerciseSessionId
+              ]
+            );
 
-              await db.runAsync(
-                `INSERT INTO sets (workout_id, exercise_id, exercise_session_id, weight, reps, added_resistance, rpe, created_at) 
+            for (const set of sets) {
+              const {
+                weight,
+                reps,
+                addedResistance,
+                rpe,
+                createdAt,
+                exerciseId,
+                id: setId
+              } = set;
+
+              if (setId) {
+                // Update existing set
+                await db.runAsync(
+                  `UPDATE sets SET weight = ?, reps = ?, added_resistance = ?, rpe = ? WHERE id = ?;`,
+                  [weight, reps, addedResistance, rpe, setId]
+                );
+              } else {
+                // Insert new set
+                if (!exerciseId) {
+                  throw new Error(`No exerciseId found`);
+                }
+
+                await db.runAsync(
+                  `INSERT INTO sets (workout_id, exercise_id, exercise_session_id, weight, reps, added_resistance, rpe, created_at) 
            VALUES (?, ?, ?, ?, ?, ?, ?, ?);`,
-                [
-                  workoutId,
-                  exerciseId,
-                  exerciseSessionId,
-                  weight,
-                  reps,
-                  addedResistance,
-                  rpe,
-                  createdAt
-                ]
-              );
+                  [
+                    workoutId,
+                    exerciseId,
+                    exerciseSessionId,
+                    weight,
+                    reps,
+                    addedResistance,
+                    rpe,
+                    createdAt
+                  ]
+                );
+              }
             }
           }
         }
@@ -291,7 +255,7 @@ export default function MainScreen() {
       Keyboard.dismiss();
       showToast({ theme, title: 'Workout saved' });
 
-      reset({ exercises }, { keepDirty: false });
+      reset({ workouts }, { keepDirty: false });
       setIsWorkoutSynched(true);
     } else {
       showToast({ theme, title: 'Failed to save workout' });
@@ -349,10 +313,12 @@ export default function MainScreen() {
           ),
           headerRight: () => (
             <Box flexDirection="row" gap="m">
-              {exerciseFields.length > 0 && (
+              {workoutSessions.length > 0 && (
                 <Pressable
                   hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
-                  onPress={handleSubmit(onSubmit)}
+                  onPress={handleSubmit(onSubmit, err =>
+                    console.log('new err', err)
+                  )}
                 >
                   <Ionicons
                     name={
@@ -408,35 +374,22 @@ export default function MainScreen() {
         }}
         style={{ backgroundColor: theme.colors.background }}
       >
-        {exerciseFields.length === 0 ? (
-          <Box flex={1} justifyContent="center" alignItems="center">
-            <Text color="primary" variant="header3">
-              No exercises recorded
-            </Text>
-          </Box>
-        ) : (
-          exerciseFields.map(
-            ({ id: exerciseId, exerciseName }, exerciseIndex) => (
-              <Box key={exerciseId} gap="m">
-                <ExerciseSession
-                  {...{
-                    control,
-                    watch,
-                    reset,
-                    getValues,
-                    exerciseIndex,
-                    exerciseName
-                  }}
-                  onRemoveExercise={() => handleDeleteExercise(exerciseIndex)}
-                  onAddSet={() => setIsWorkoutSynched(false)}
-                />
-              </Box>
-            )
-          )
-        )}
+        <WorkoutSessions
+          {...{
+            control,
+            watch,
+            reset,
+            setFocus,
+            getValues,
+            setValue
+          }}
+          onRemoveWorkoutSession={() => setIsWorkoutSynched(true)}
+          onAddSet={() => setIsWorkoutSynched(false)}
+          onRemoveSet={() => setIsWorkoutSynched(true)}
+        />
       </ScrollView>
 
-      {exerciseFields.length > 0 ? (
+      {workoutSessions.length > 0 ? (
         <Box
           position="absolute"
           aspectRatio={'1/1'}
@@ -498,6 +451,7 @@ export default function MainScreen() {
           </Link>
         </Box>
       )}
+
       <Modal
         ref={refMore}
         title="More"
@@ -533,7 +487,7 @@ export default function MainScreen() {
             <Pressable
               onPress={() => {
                 dismissMore();
-                handleDeleteWorkout();
+                // handleDeleteWorkout();
               }}
             >
               <MenuItem
