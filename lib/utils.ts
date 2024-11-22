@@ -124,6 +124,7 @@ export function groupSetsByWorkoutId<T extends WorkoutSession>(
       // If it's a new exercise, create a new group
       grouped.push({
         workoutId: currSet.workoutId,
+        workoutName: currSet.workoutName,
         workoutStart: currSet.workoutStart,
         sets: [currSet]
       });
@@ -155,6 +156,7 @@ export function groupSetsByExerciseSessionId(
         exerciseName: currSet.exerciseName,
         workoutId: currSet.workoutId,
         workoutStart: currSet.workoutStart,
+        workoutName: currSet.workoutName,
         exerciseSessionWeightUnit: currSet.exerciseSessionWeightUnit,
         exerciseSessionNotes: currSet.exerciseSessionNotes,
         exerciseSessionId: currSet.exerciseSessionId,
