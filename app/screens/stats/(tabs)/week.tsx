@@ -143,6 +143,7 @@ export default function WeekTab() {
           SELECT
               calendar.day AS workoutStart,
               w.id AS workoutId,
+              w.workout_name as workoutName,
               COALESCE(SUM(s.weight * s.reps), 0) AS volume,
               COALESCE(ROUND(AVG(s.rpe),1), 0) AS avgRpe,
               COALESCE(COUNT(s.weight), 0) AS setCount,
@@ -618,7 +619,8 @@ export default function WeekTab() {
                                 fontSize={18}
                                 color="primary"
                               >
-                                {`Workout`}
+                                {workoutsWithoutPlaceholders[idx].workoutName ??
+                                  `${format(workoutStart, 'EEEE')} Workout`}
                               </Text>
                               <Text fontSize={12} color="mutedForeground">
                                 {`${format(workoutStart, 'hh:mm b')}`}
