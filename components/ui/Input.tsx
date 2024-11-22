@@ -7,11 +7,13 @@ import {
   border,
   layout,
   color,
+  typography,
   ColorProps,
   LayoutProps,
   SpacingProps,
   BorderProps,
-  useTheme
+  useTheme,
+  TypographyProps
 } from '@shopify/restyle';
 import { Control, FieldValues, Path, useController } from 'react-hook-form';
 import { TextInput as RNTextInput, Pressable } from 'react-native';
@@ -23,6 +25,7 @@ type TextInputProps = SpacingProps<Theme> &
   BorderProps<Theme> &
   LayoutProps<Theme> &
   ColorProps<Theme> &
+  TypographyProps<Theme> &
   VariantProps<Theme, 'inputVariants', 'inputVariant'> &
   React.ComponentProps<typeof RNTextInput>;
 
@@ -32,6 +35,7 @@ const TextInput = createRestyleComponent<TextInputProps, Theme>(
     spacing,
     border,
     color,
+    typography,
     createVariant<Theme, 'inputVariants', 'inputVariant'>({
       themeKey: 'inputVariants',
       property: 'inputVariant'
@@ -42,6 +46,7 @@ const TextInput = createRestyleComponent<TextInputProps, Theme>(
 
 interface NInputProps extends TextInputProps {
   label?: string;
+  alignLabel?: TextInputProps['textAlign'];
   error?: string;
   disabled?: boolean;
   withInputMessage?: boolean;
@@ -67,6 +72,10 @@ export const Input = React.forwardRef<RNTextInput, NInputProps>(
       error,
       label,
       minHeight,
+      borderWidth = 1,
+      alignLabel = 'center',
+      paddingVertical = 's',
+      paddingHorizontal = 'm',
       height = 40,
       disabled = false,
       withInputMessage = true,
@@ -102,7 +111,11 @@ export const Input = React.forwardRef<RNTextInput, NInputProps>(
     return (
       <Box flex={flex} gap="s">
         {label && !renderLabelInside && (
-          <Text variant="inputLabel" color="mutedForeground" textAlign="center">
+          <Text
+            variant="inputLabel"
+            color="mutedForeground"
+            textAlign={alignLabel}
+          >
             {label}
           </Text>
         )}
@@ -112,12 +125,12 @@ export const Input = React.forwardRef<RNTextInput, NInputProps>(
             alignItems="center"
             justifyContent="center"
             borderColor={inputBorderColor}
-            borderWidth={1}
+            borderWidth={borderWidth}
             borderRadius="sm"
             height={height}
             minHeight={minHeight}
-            paddingVertical="s"
-            paddingHorizontal="m"
+            paddingVertical={paddingVertical}
+            paddingHorizontal={paddingHorizontal}
           >
             <Box flexDirection="row" alignItems="center" flex={1}>
               {iconLeft && <Box marginRight="s">{iconLeft}</Box>}
