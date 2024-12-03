@@ -1,5 +1,5 @@
 import MenuItem from '@/components/MenuItem';
-import { Link as ExpoLink, useFocusEffect } from 'expo-router';
+import { useFocusEffect } from 'expo-router';
 import { Box } from '@/components/ui/Box';
 import Link from '@/components/ui/Link';
 import { Modal, useModal } from '@/components/ui/Modal';
@@ -341,17 +341,21 @@ export default function MainScreen() {
                   size={20}
                 />
               </Pressable>
-              <ExpoLink href="/calendarView" asChild>
-                <Pressable
-                  hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
-                >
-                  <Ionicons
-                    name="calendar"
-                    color={theme.colors.primary}
-                    size={20}
-                  />
-                </Pressable>
-              </ExpoLink>
+              <Pressable
+                hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
+                onPress={() =>
+                  router.navigate({
+                    pathname: '/calendarView',
+                    params: { targetWorkoutDateString: currentDate }
+                  })
+                }
+              >
+                <Ionicons
+                  name="calendar"
+                  color={theme.colors.primary}
+                  size={20}
+                />
+              </Pressable>
               <Pressable
                 hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
                 onPress={presentMore}
