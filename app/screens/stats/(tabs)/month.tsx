@@ -660,7 +660,7 @@ export default function MonthTab() {
                             </Pressable>
                             <Pressable onPress={presentVolumeInfoModal}>
                               <Badge
-                                label={setCount}
+                                label={setCount.toString()}
                                 backgroundColor="secondary"
                                 borderColor="secondary"
                                 color="secondaryForeground"
