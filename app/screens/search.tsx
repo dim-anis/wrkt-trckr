@@ -133,18 +133,27 @@ export default function Search() {
   }
 
   async function handleStartNextWorkout() {
-    // TODO: use last set's created_at OR current time as the ended_at
-    const updateWorkoutResult = await db.runAsync(
-      `UPDATE workouts SET ended_at = ? WHERE id = ?;`,
-      new Date().toISOString(),
-      workout?.id!
-    );
+    if (workout) {
+      const updateWorkoutResult = await db.runAsync(
+        `
+      UPDATE workouts
+      SET end_time = (
+          SELECT MAX(s.created_at)
+          FROM exercise_session es
+          INNER JOIN sets s ON es.id = s.exercise_session_id
+          WHERE es.workout_id = workouts.id
+      )
+      WHERE id = ?;
+      `,
+        workout.id
+      );
 
-    if (updateWorkoutResult.changes > 0) {
-      setWorkout(null);
-
+      if (updateWorkoutResult.changes > 0) {
+        setWorkout(null);
+      }
     }
   }
+
   useEffect(() => {
     if (workout === null) {
       handleStartWorkout();
