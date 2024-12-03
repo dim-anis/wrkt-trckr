@@ -553,161 +553,21 @@ export default function DayTab() {
               <Box gap="m" flexDirection="column">
                 {workoutsWithoutPlaceholders.length > 0 ? (
                   workoutsWithoutPlaceholders.map(
-                    ({ workoutStart, workoutStats, exercises }, idx) => {
+                    (
+                      { workoutStart, workoutStats, exercises, workoutName },
+                      idx
+                    ) => {
+                      workoutName = workoutName ?? `Workout #${idx + 1}`;
                       return (
-                        <Box key={idx}>
-                          <Box
-                            gap="xs"
-                            bg="secondary"
-                            padding="m"
-                            borderTopLeftRadius="md"
-                            borderTopRightRadius="md"
-                          >
-                            <Box gap="xs">
-                              <Text
-                                color="primary"
-                                fontSize={18}
-                                fontWeight={500}
-                              >
-                                {workouts[idx].workoutName ??
-                                  `Workout #${idx + 1}`}
-                              </Text>
-                              <Text color="mutedForeground" fontSize={12}>
-                                {format(workoutStart, 'EEE, MMM dd, yyyy')}
-                              </Text>
-                            </Box>
-                            <Separator
-                              orientation="horizontal"
-                              marginHorizontal="none"
-                              backgroundColor="mutedForeground"
-                            />
-                            <Box flexDirection="row" gap="s">
-                              <Box flexDirection="column" gap="xs">
-                                <Text color="mutedForeground" fontSize={14}>
-                                  Volume
-                                </Text>
-                                <Text color="primary" fontSize={20}>
-                                  {`${formatNumber(Number(workoutStats.volume.toFixed(1)))} kg`}
-                                </Text>
-                              </Box>
-                              <Separator
-                                orientation="vertical"
-                                backgroundColor="mutedForeground"
-                              />
-                              {workoutStats.avgRpe !== null &&
-                                workoutStats.avgRpe > 0 && (
-                                  <>
-                                    <Box flexDirection="column" gap="xs">
-                                      <Text
-                                        color="mutedForeground"
-                                        fontSize={14}
-                                      >
-                                        RPE
-                                      </Text>
-                                      <Text color="primary" fontSize={20}>
-                                        {roundToNearestHalf(
-                                          workoutStats.avgRpe
-                                        )}
-                                      </Text>
-                                    </Box>
-                                    <Separator
-                                      orientation="vertical"
-                                      backgroundColor="mutedForeground"
-                                    />
-                                  </>
-                                )}
-                              <Box flexDirection="column" gap="xs">
-                                <Text color="mutedForeground" fontSize={14}>
-                                  Sets
-                                </Text>
-                                <Text color="primary" fontSize={20}>
-                                  {workoutStats.setCount}
-                                </Text>
-                              </Box>
-                              {workoutStats.totalTime > 0 && (
-                                <>
-                                  <Separator
-                                    orientation="vertical"
-                                    backgroundColor="mutedForeground"
-                                  />
-                                  <Box flexDirection="column" gap="xs">
-                                    <Text color="mutedForeground" fontSize={14}>
-                                      Time
-                                    </Text>
-                                    <Text color="primary" fontSize={20}>
-                                      {formatDuration(
-                                        intervalToDuration({
-                                          start: 0,
-                                          end: workoutStats.totalTime
-                                        })
-                                      )}
-                                    </Text>
-                                  </Box>
-                                </>
-                              )}
-                            </Box>
-                          </Box>
-                          <Box
-                            flexDirection="column"
-                            padding="m"
-                            borderWidth={1}
-                            borderColor="secondary"
-                            borderTopWidth={0}
-                            borderBottomLeftRadius="md"
-                            borderBottomRightRadius="md"
-                          >
-                            <Box flexDirection="row" gap="s">
-                              <Box flex={1}>
-                                <Text
-                                  variant="body"
-                                  color="mutedForeground"
-                                  fontWeight={500}
-                                >
-                                  Exercise
-                                </Text>
-                              </Box>
-                              <Box flex={1}>
-                                <Text
-                                  variant="body"
-                                  color="mutedForeground"
-                                  fontWeight={500}
-                                >
-                                  Sets
-                                </Text>
-                              </Box>
-                            </Box>
-                            <Separator marginHorizontal="none" />
-                            {exercises.map((exercise, idx) => (
-                              <Box key={idx}>
-                                <Box flexDirection="row" gap="s">
-                                  <Box flex={1}>
-                                    <Text
-                                      variant="body"
-                                      color="primary"
-                                      numberOfLines={1}
-                                    >
-                                      {exercise.name}
-                                    </Text>
-                                  </Box>
-                                  <Box flex={1}>
-                                    <Text
-                                      variant="body"
-                                      color="primary"
-                                      numberOfLines={1}
-                                    >
-                                      {exercise.sets
-                                        .map(set => `${set.weight}x${set.reps}`)
-                                        .join(', ')}
-                                    </Text>
-                                  </Box>
-                                </Box>
-                                {idx + 1 < exercises.length && (
-                                  <Separator marginHorizontal="none" />
-                                )}
-                              </Box>
-                            ))}
-                          </Box>
-                        </Box>
+                        <WorkoutStatsCard
+                          key={idx}
+                          {...{
+                            workoutName,
+                            workoutStart,
+                            exercises,
+                            workoutStats
+                          }}
+                        />
                       );
                     }
                   )

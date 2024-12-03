@@ -1,0 +1,142 @@
+import { format, formatDuration, intervalToDuration } from 'date-fns';
+import { Box } from './ui/Box';
+import { Text } from './ui/Text';
+import Separator from './Separator';
+import { formatNumber, roundToNearestHalf } from '@/lib/utils';
+import ExerciseList from './ExerciseList';
+import { Exercise, Set } from '@/lib/zodSchemas';
+
+type Props = {
+  workoutName: string;
+  workoutStart: string;
+  exercises: (Exercise & {
+    sets: Set[];
+  })[];
+  workoutStats?: {
+    volume: number;
+    totalTime: number;
+    setCount: number;
+    avgRpe: number | null;
+  };
+};
+
+export default function WorkoutStatsCard({
+  workoutName,
+  workoutStart,
+  workoutStats,
+  exercises
+}: Props) {
+  return (
+    <Box>
+      <Box
+        gap="xs"
+        bg="secondary"
+        padding="m"
+        borderTopLeftRadius="md"
+        borderTopRightRadius="md"
+      >
+        <Box gap="xs">
+          <Text color="primary" fontSize={18} fontWeight={500}>
+            {workoutName}
+          </Text>
+          <Text color="mutedForeground" fontSize={12}>
+            {format(workoutStart, 'EEE, MMM dd, yyyy')}
+          </Text>
+        </Box>
+
+        {workoutStats && (
+          <Box>
+            <Separator
+              orientation="horizontal"
+              marginHorizontal="none"
+              backgroundColor="mutedForeground"
+            />
+            <Box flexDirection="row" gap="s">
+              <Box flexDirection="column" gap="xs">
+                <Text color="mutedForeground" fontSize={14}>
+                  Volume
+                </Text>
+                <Text color="primary" fontSize={20}>
+                  {`${formatNumber(Number(workoutStats.volume.toFixed(1)))} kg`}
+                </Text>
+              </Box>
+              <Separator
+                orientation="vertical"
+                backgroundColor="mutedForeground"
+              />
+              {workoutStats.avgRpe !== null && workoutStats.avgRpe > 0 && (
+                <>
+                  <Box flexDirection="column" gap="xs">
+                    <Text color="mutedForeground" fontSize={14}>
+                      RPE
+                    </Text>
+                    <Text color="primary" fontSize={20}>
+                      {roundToNearestHalf(workoutStats.avgRpe)}
+                    </Text>
+                  </Box>
+                  <Separator
+                    orientation="vertical"
+                    backgroundColor="mutedForeground"
+                  />
+                </>
+              )}
+              <Box flexDirection="column" gap="xs">
+                <Text color="mutedForeground" fontSize={14}>
+                  Sets
+                </Text>
+                <Text color="primary" fontSize={20}>
+                  {workoutStats.setCount}
+                </Text>
+              </Box>
+              {workoutStats.totalTime > 0 && (
+                <>
+                  <Separator
+                    orientation="vertical"
+                    backgroundColor="mutedForeground"
+                  />
+                  <Box flexDirection="column" gap="xs">
+                    <Text color="mutedForeground" fontSize={14}>
+                      Time
+                    </Text>
+                    <Text color="primary" fontSize={20}>
+                      {formatDuration(
+                        intervalToDuration({
+                          start: 0,
+                          end: workoutStats.totalTime
+                        })
+                      )}
+                    </Text>
+                  </Box>
+                </>
+              )}
+            </Box>
+          </Box>
+        )}
+      </Box>
+      <Box
+        flexDirection="column"
+        padding="m"
+        borderWidth={1}
+        borderColor="secondary"
+        borderTopWidth={0}
+        borderBottomLeftRadius="md"
+        borderBottomRightRadius="md"
+      >
+        <Box flexDirection="row" gap="s">
+          <Box flex={1}>
+            <Text variant="body" color="mutedForeground" fontWeight={500}>
+              Exercise
+            </Text>
+          </Box>
+          <Box flex={1}>
+            <Text variant="body" color="mutedForeground" fontWeight={500}>
+              Sets
+            </Text>
+          </Box>
+        </Box>
+        <Separator marginHorizontal="none" />
+        <ExerciseList exercises={exercises} />
+      </Box>
+    </Box>
+  );
+}
