@@ -6,9 +6,11 @@ import {
   WorkoutSession,
   Set,
   ExerciseSessionWithExercise,
-  Exercise
+  Exercise,
+  ExerciseCategory
 } from './zodSchemas';
 import { addDays, endOfWeek, startOfWeek, subDays } from 'date-fns';
+import { Workout } from '@/app/screens/stats/(tabs)/types';
 
 export type ValueOf<T> = T[keyof T];
 
@@ -239,4 +241,130 @@ export function getDefaultDateRange(type: 'Day' | 'Week' | '4W') {
         to: endOfWeek(date, { weekStartsOn: 1 })
       };
   }
+}
+
+export function groupSetsByWorkout(
+  sets: (WorkoutSession & Exercise & ExerciseCategory & Set)[]
+): Workout[] {
+  const workouts: { [key: number]: Workout } = {};
+
+  sets.forEach(set => {
+    const {
+      workoutId,
+      workoutStart,
+      workoutName,
+      exerciseName,
+      exerciseId,
+      categoryName,
+      categoryId,
+      reps,
+      weight,
+      rpe,
+      addedResistance
+    } = set;
+
+    const setVolume = weight
+      ? reps * weight
+      : addedResistance
+        ? reps * addedResistance
+        : 0;
+
+    // Initialize workout entry if it doesn't exist
+    if (!workouts[workoutId]) {
+      workouts[workoutId] = {
+        workoutId,
+        workoutName,
+        workoutStart,
+        workoutStats: {
+          volume: 0,
+          setCount: 0,
+          avgRpe: null,
+          totalTime: 0
+        },
+        exercises: [],
+        categories: []
+      };
+    }
+
+    const workout = workouts[workoutId];
+
+    // Update workout-level stats
+    workout.workoutStats.volume += setVolume;
+    // Workout with id of null are dummy workouts
+    workout.workoutStats.setCount += workoutId !== null ? 1 : 0;
+    if (rpe !== null) {
+      workout.workoutStats.avgRpe =
+        workout.workoutStats.avgRpe !== null
+          ? (workout.workoutStats.avgRpe * (workout.workoutStats.setCount - 1) +
+              rpe) /
+            workout.workoutStats.setCount
+          : rpe;
+    }
+
+    // Find or create exercise entry within the workout
+    let exercise = workout.exercises.find(
+      ex => ex.exerciseName === exerciseName
+    );
+    if (!exercise) {
+      exercise = {
+        id: exerciseId!,
+        exerciseName,
+        sets: [],
+        stats: {
+          volume: 0,
+          setCount: 0,
+          avgRpe: null
+        }
+      };
+      workout.exercises.push(exercise);
+    }
+
+    // Add set to exercise
+    exercise.sets.push(set);
+
+    // Update exercise-level stats
+    exercise.stats.volume += setVolume;
+    exercise.stats.setCount += workoutId !== null ? 1 : 0;
+    if (rpe !== null) {
+      exercise.stats.avgRpe =
+        exercise.stats.avgRpe !== null
+          ? (exercise.stats.avgRpe * (exercise.stats.setCount - 1) + rpe) /
+            exercise.stats.setCount
+          : rpe;
+    }
+
+    // Find or create category entry within the workout
+    let category = workout.categories.find(
+      cat => cat.categoryName === categoryName
+    );
+    if (!category) {
+      category = {
+        id: categoryId!,
+        categoryName,
+        sets: [],
+        stats: {
+          volume: 0,
+          setCount: 0,
+          avgRpe: null
+        }
+      };
+      workout.categories.push(category);
+    }
+
+    // Add set to category
+    category.sets.push(set);
+
+    // Update category-level stats
+    category.stats.volume += setVolume;
+    category.stats.setCount += workoutId !== null ? 1 : 0;
+    if (rpe !== null) {
+      category.stats.avgRpe =
+        category.stats.avgRpe !== null
+          ? (category.stats.avgRpe * (category.stats.setCount - 1) + rpe) /
+            category.stats.setCount
+          : rpe;
+    }
+  });
+
+  return Object.values(workouts);
 }
