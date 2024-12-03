@@ -2,7 +2,6 @@ import { IoniconsIconName } from '@/types';
 import { Theme } from '@/lib/theme';
 import { showMessage } from 'react-native-flash-message';
 import {
-  ExerciseSessionWithSets,
   WorkoutSession,
   Set,
   ExerciseSessionWithExercise,
@@ -137,40 +136,6 @@ export function groupSetsByWorkoutId<T extends WorkoutSession>(
 
   return grouped;
 }
-
-// export function groupSetsByExerciseSessionId(
-//   sets: (WorkoutSession & ExerciseSessionWithExercise & Set)[]
-// ): ExerciseSessionWithSets[] {
-//   const grouped: (WorkoutSession & ExerciseSessionWithSets)[] = [];
-//
-//   sets.forEach(currSet => {
-//     // Check if the last group is the same as the current exercise name
-//     const lastGroup = grouped[grouped.length - 1];
-//
-//     if (
-//       lastGroup &&
-//       lastGroup.exerciseSessionId === currSet.exerciseSessionId
-//     ) {
-//       // If it's the same exercise, push to the existing group's sets
-//       lastGroup.sets.push(currSet);
-//     } else {
-//       // If it's a new exercise, create a new group
-//       grouped.push({
-//         exerciseId: currSet.exerciseId,
-//         exerciseName: currSet.exerciseName,
-//         workoutId: currSet.workoutId,
-//         workoutStart: currSet.workoutStart,
-//         workoutName: currSet.workoutName,
-//         exerciseSessionWeightUnit: currSet.exerciseSessionWeightUnit,
-//         exerciseSessionNotes: currSet.exerciseSessionNotes,
-//         exerciseSessionId: currSet.exerciseSessionId,
-//         sets: [currSet]
-//       });
-//     }
-//   });
-//
-//   return grouped;
-// }
 
 export function countItems<T extends string | number>(items: T[]) {
   return items.reduce((result, currVal) => {
@@ -369,37 +334,6 @@ export function groupSetsByWorkout(
   });
 
   return Object.values(workouts);
-}
-
-export function groupSetsByExerciseSessionId(
-  sets: (WorkoutSession & ExerciseSessionWithExercise & Set)[]
-): ExerciseSessionWithSets[] {
-  const grouped: ExerciseSessionWithSets[] = [];
-
-  sets.forEach(currSet => {
-    // Check if the last group is the same as the current exercise name
-    const lastGroup = grouped[grouped.length - 1];
-
-    if (
-      lastGroup &&
-      lastGroup.exerciseSessionId === currSet.exerciseSessionId
-    ) {
-      // If it's the same exercise, push to the existing group's sets
-      lastGroup.sets.push(currSet);
-    } else {
-      // If it's a new exercise, create a new group
-      grouped.push({
-        exerciseId: currSet.exerciseId,
-        exerciseName: currSet.exerciseName,
-        exerciseSessionWeightUnit: currSet.exerciseSessionWeightUnit,
-        exerciseSessionNotes: currSet.exerciseSessionNotes,
-        exerciseSessionId: currSet.exerciseSessionId,
-        sets: [currSet]
-      });
-    }
-  });
-
-  return grouped;
 }
 
 export function groupWorkoutSessions(
