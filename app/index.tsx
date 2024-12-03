@@ -320,21 +320,6 @@ export default function MainScreen() {
               )}
               <Pressable
                 hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
-                onPress={() =>
-                  router.navigate({
-                    pathname: '/calendarView',
-                    params: { targetWorkoutDateString: currentDate }
-                  })
-                }
-              >
-                <Ionicons
-                  name="calendar"
-                  color={theme.colors.primary}
-                  size={20}
-                />
-              </Pressable>
-              <Pressable
-                hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
                 onPress={presentMore}
               >
                 <Ionicons
@@ -442,6 +427,26 @@ export default function MainScreen() {
       >
         <BottomSheetView>
           <Box padding="m" gap="m" flex={1}>
+            <Pressable
+              onPress={() => {
+                dismissMore();
+                router.navigate({
+                  pathname: '/calendarView',
+                  params: { targetWorkoutDateString: currentDate }
+                });
+              }}
+            >
+              <MenuItem
+                label={'Workout calendar'}
+                iconLeft={
+                  <Ionicons
+                    name="calendar-outline"
+                    size={20}
+                    color={theme.colors.primary}
+                  />
+                }
+              />
+            </Pressable>
             {menuItems.map(({ href, label, icon }, index) => (
               <Pressable
                 key={index}
@@ -465,24 +470,6 @@ export default function MainScreen() {
                 />
               </Pressable>
             ))}
-            <Pressable
-              onPress={() => {
-                dismissMore();
-                // handleDeleteWorkout();
-              }}
-            >
-              <MenuItem
-                label={'Delete workout'}
-                textColor="destructive"
-                iconLeft={
-                  <Ionicons
-                    name="trash-outline"
-                    size={20}
-                    color={theme.colors.destructive}
-                  />
-                }
-              />
-            </Pressable>
           </Box>
         </BottomSheetView>
       </Modal>
