@@ -35,7 +35,8 @@ export default function Search() {
 
   let { workoutDate } = useLocalSearchParams<SearchParams>();
 
-  const dateISOString = workoutDate ?? new Date().toISOString();
+  const workoutTimestamp = workoutDate ? new Date(workoutDate) : new Date();
+  const workoutDateId = toDateId(workoutTimestamp);
 
   const [searchTerm, setSearchTerm] = useState('');
   const [workout, setWorkout] = useState<Workout | undefined | null>(undefined);
@@ -113,7 +114,7 @@ export default function Search() {
         `INSERT INTO exercise_session (workout_id, exercise_id, start_time) VALUES (?, ?, ?)`,
         workoutId,
         exercise.id,
-        dateISOString
+        workoutTimestamp.toISOString()
       );
 
       const exerciseSessionId = createExerciseSessionResult.lastInsertRowId;
@@ -127,7 +128,7 @@ export default function Search() {
 
     router.navigate({
       pathname: '/',
-      params: { workoutDateId: dateISOString, workoutId }
+      params: { workoutDateId: workoutTimestamp.toISOString(), workoutId }
     });
   }
 
