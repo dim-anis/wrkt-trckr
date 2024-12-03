@@ -46,7 +46,9 @@ type SearchParams = {
   dateRangeTo: string;
 };
 
-type WorkoutSessionWithStats = WorkoutSession & {
+type WorkoutSessionWithStats = Omit<WorkoutSession, 'workoutId'> & {
+  workoutId: number | null;
+} & {
   setCount: number;
   avgRpe: number | null;
   volume: number;
@@ -282,6 +284,7 @@ export default function WeekTab() {
           return (
             workout || {
               workoutId: null,
+              workoutName: null,
               workoutStart: formattedDate,
               avgRpe: 0,
               setCount: 0,
