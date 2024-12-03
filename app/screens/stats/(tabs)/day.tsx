@@ -29,6 +29,14 @@ import {
   chartOptions,
   getChartConfigs
 } from './chartConfigs';
+import { Workout } from './types';
+import {
+  Exercise,
+  ExerciseCategory,
+  Set,
+  WorkoutSession
+} from '@/lib/zodSchemas';
+import WorkoutStatsCard from '@/components/WorkoutStatsCard';
 const inter = require('../../../../assets/fonts/Inter-Regular.ttf');
 const interBold = require('../../../../assets/fonts/Inter-Bold.ttf');
 
@@ -36,59 +44,6 @@ type SearchParams = {
   dateRangeFrom?: string;
   dateRangeTo?: string;
   workoutIndex?: string;
-};
-
-type Set = WorkoutSession & {
-  workoutId: number;
-  exerciseName: string;
-  exerciseId: number;
-  exerciseCategoryName: string;
-  exerciseCategoryId: number;
-  reps: number;
-  rpe: number | null;
-  weight: number;
-};
-
-type WorkoutStat = {
-  volume: number;
-  setCount: number;
-  avgRpe: number | null;
-  totalTime: number;
-};
-
-type CategoryStat = {
-  volume: number;
-  setCount: number;
-  avgRpe: number | null;
-};
-
-type ExerciseStat = {
-  volume: number;
-  setCount: number;
-  avgRpe: number | null;
-};
-
-type Exercise = {
-  id: number;
-  name: string;
-  sets: Set[];
-  stats: ExerciseStat;
-};
-
-type Category = {
-  id: number;
-  name: string;
-  sets: Set[];
-  stats: CategoryStat;
-};
-
-type Workout = {
-  workoutId: number;
-  workoutName: string | null;
-  workoutStart: string;
-  workoutStats: WorkoutStat;
-  exercises: Exercise[];
-  categories: Category[];
 };
 
 export default function DayTab() {
@@ -160,7 +115,9 @@ export default function DayTab() {
   function searchWorkouts(): Promise<Workout[]> {
     return new Promise(async (resolve, reject) => {
       try {
-        const result = await db.getAllAsync<Set>(
+        const result = await db.getAllAsync<
+          WorkoutSession & Exercise & ExerciseCategory & Set
+        >(
           `
           WITH RECURSIVE calendar AS (
               SELECT DATE('${toDateId(dateRange.from)}') AS day
@@ -176,8 +133,8 @@ export default function DayTab() {
               w.workout_name as workoutName,
               e.name AS exerciseName,
               e.id AS exerciseId,
-              ec.name AS exerciseCategoryName,
-              ec.id AS exerciseCategoryId,
+              ec.name AS categoryName,
+              ec.id AS categoryId,
               s.weight AS weight,
               s.reps AS reps,
               s.rpe AS rpe
@@ -272,7 +229,7 @@ export default function DayTab() {
   }
 
   const chartData = workouts[sameDayWorkoutIndex]?.[groupBy.value]?.map(v => ({
-    x: v.name,
+    x: 'categoryName' in v ? v.categoryName : v.exerciseName,
     y: v.stats[selectedChartType.value]
   }));
 
