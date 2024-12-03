@@ -107,8 +107,6 @@ export default function Search() {
       workoutId = createWorkoutResult.lastInsertRowId;
     }
 
-    let statements: string[] = [];
-
     for (const [_, exercise] of selectedExercises) {
       const createExerciseSessionResult = await db.runAsync(
         `INSERT INTO exercise_session (workout_id, exercise_id, start_time) VALUES (?, ?, ?)`,
@@ -119,12 +117,15 @@ export default function Search() {
 
       const exerciseSessionId = createExerciseSessionResult.lastInsertRowId;
 
-      statements.push(
-        `INSERT INTO sets (workout_id, exercise_id, exercise_session_id, weight, reps) VALUES (${workoutId}, ${exercise.id}, ${exerciseSessionId}, 0, 0);`
+      await db.runAsync(
+        `INSERT INTO sets (workout_id, exercise_id, exercise_session_id, weight, reps) VALUES (?, ?, ?, ?, ?);`,
+        workoutId,
+        exercise.id,
+        exerciseSessionId,
+        0,
+        0
       );
     }
-
-    await db.execAsync(statements.join(''));
 
     router.navigate({
       pathname: '/',
