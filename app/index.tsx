@@ -105,7 +105,6 @@ export default function MainScreen() {
       let isActive = true;
 
       async function fetchSets() {
-        console.log('refetching');
         const result = await db.getAllAsync<
           WorkoutSession & ExerciseSessionWithExercise & Set
         >(
