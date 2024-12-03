@@ -58,7 +58,13 @@ export const workoutSessionSchema = z.object({
   workoutName: z
     .preprocess(val => (val === '' ? null : val), z.string().nullable())
     .default(null),
-  workoutStart: z.string()
+  workoutStart: z.string(),
+  workoutEnd: z
+    .preprocess(
+      val => (val === '' ? null : val),
+      z.union([z.string(), z.null()])
+    )
+    .default(null)
 });
 
 export const workoutSessionWithExercisesSchema = workoutSessionSchema.extend({

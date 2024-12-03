@@ -8,6 +8,7 @@ import {
   Control,
   UseFormGetValues,
   UseFormReset,
+  UseFormSetValue,
   UseFormWatch,
   useFieldArray
 } from 'react-hook-form';
@@ -26,6 +27,7 @@ type WorkoutSessionProps = {
   control: Control<Workout>;
   watch: UseFormWatch<Workout>;
   reset: UseFormReset<Workout>;
+  setValue: UseFormSetValue<Workout>;
   getValues: UseFormGetValues<Workout>;
   onAddSet: () => void;
   onRemoveSet: () => void;
@@ -37,6 +39,7 @@ const WorkoutSessions = ({
   watch,
   reset,
   getValues,
+  setValue,
   onAddSet,
   onRemoveSet,
   onRemoveWorkoutSession
@@ -53,6 +56,38 @@ const WorkoutSessions = ({
 
   const workoutSessionModal = useModal();
   const dangerousActionModal = useModal();
+
+  async function handleFinishWorkout(
+    workoutSessionIndex: number,
+    prevState: null | string
+  ) {
+    const currentTimestampISO = new Date().toISOString();
+    const { workoutId } = workoutSessions[workoutSessionIndex];
+
+    try {
+      setValue(
+        `workouts.${workoutSessionIndex}.workoutEnd`,
+        prevState ? null : currentTimestampISO
+      );
+
+      const updateWorkoutResult = await db.runAsync(
+        `
+      UPDATE workouts
+      SET end_time = ?
+      WHERE id = ?;
+      `,
+        prevState ? null : currentTimestampISO,
+        workoutId
+      );
+
+      if (updateWorkoutResult.changes) {
+        prevState ?? showToast({ theme, title: 'Workout finished' });
+      }
+    } catch (e) {
+      setValue(`workouts.${workoutSessionIndex}.workoutEnd`, prevState);
+      console.log(e);
+    }
+  }
 
   async function handleDeleteWorkoutSession(workoutSessionIndex: number) {
     const { workoutId } = workoutSessions[workoutSessionIndex];
@@ -83,6 +118,9 @@ const WorkoutSessions = ({
     <Box gap="xl">
       {workoutSessions.map((workout, workoutSessionIndex) => {
         const workoutSessionNamePlaceholder = `Workout #${workoutSessionIndex + 1}`;
+        const isWorkoutFinished = watch(
+          `workouts.${workoutSessionIndex}.workoutEnd`
+        );
         return (
           <Box gap="m" key={workout.rhf_wid}>
             <Box flexDirection="row" alignItems="center">
@@ -105,19 +143,34 @@ const WorkoutSessions = ({
                   />
                 }
               />
-              <Ionicons
-                name="ellipsis-vertical"
-                color={theme.colors.mutedForeground}
-                size={18}
-                onPress={() =>
-                  workoutSessionModal.present({
-                    workoutSessionIndex,
-                    workoutSessionName:
-                      workout.workoutName ?? workoutSessionNamePlaceholder,
-                    workoutStart: workout.workoutStart
-                  })
-                }
-              />
+              <Box gap="s" flexDirection="row" marginLeft="s">
+                <Ionicons
+                  name="checkmark-outline"
+                  size={18}
+                  color={
+                    theme.colors[
+                      isWorkoutFinished ? 'green' : 'mutedForeground'
+                    ]
+                  }
+                  onPress={() =>
+                    handleFinishWorkout(workoutSessionIndex, isWorkoutFinished)
+                  }
+                />
+                <Ionicons
+                  name="ellipsis-vertical"
+                  color={theme.colors.mutedForeground}
+                  size={18}
+                  onPress={() =>
+                    workoutSessionModal.present({
+                      workoutSessionIndex,
+                      workoutSessionName:
+                        workout.workoutName ?? workoutSessionNamePlaceholder,
+                      workoutStart: workout.workoutStart,
+                      isWorkoutFinished
+                    })
+                  }
+                />
+              </Box>
             </Box>
             <ExerciseSessions
               {...{
@@ -142,10 +195,32 @@ const WorkoutSessions = ({
         backgroundStyle={{ backgroundColor: theme.colors.background }}
       >
         {({
-          data: { workoutSessionIndex, workoutStart, workoutSessionName }
+          data: {
+            workoutSessionIndex,
+            workoutStart,
+            workoutSessionName,
+            isWorkoutFinished
+          }
         }) => (
           <BottomSheetView>
             <Box padding="m" gap="m" flex={1}>
+              <Pressable
+                onPress={() => {
+                  workoutSessionModal.dismiss();
+                  handleFinishWorkout(workoutSessionIndex, isWorkoutFinished);
+                }}
+              >
+                <MenuItem
+                  label={`Mark workout as ${isWorkoutFinished ? 'unfinished' : 'finished'}`}
+                  iconLeft={
+                    <Ionicons
+                      name={'checkmark-outline'}
+                      size={20}
+                      color={theme.colors.primary}
+                    />
+                  }
+                />
+              </Pressable>
               <Pressable
                 onPress={() => {
                   workoutSessionModal.dismiss();

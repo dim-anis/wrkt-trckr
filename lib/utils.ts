@@ -129,6 +129,7 @@ export function groupSetsByWorkoutId<T extends WorkoutSession>(
         workoutId: currSet.workoutId,
         workoutName: currSet.workoutName,
         workoutStart: currSet.workoutStart,
+        workoutEnd: currSet.workoutEnd,
         sets: [currSet]
       });
     }
@@ -422,6 +423,7 @@ export function groupWorkoutSessions(
     workoutId,
     workoutName,
     workoutStart,
+    workoutEnd,
     ...exerciseSessionAndSetData
   } of sets) {
     const {
@@ -435,7 +437,12 @@ export function groupWorkoutSessions(
 
     if (!workoutSessionMap.has(workoutId)) {
       workoutSessionMap.set(workoutId, {
-        workoutSessionData: { workoutId, workoutName, workoutStart },
+        workoutSessionData: {
+          workoutId,
+          workoutName,
+          workoutStart,
+          workoutEnd
+        },
         exercises: new Map()
       });
     }

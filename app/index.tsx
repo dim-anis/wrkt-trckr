@@ -113,6 +113,7 @@ export default function MainScreen() {
             SELECT
                 w.id as workoutId,
                 w.start_time as workoutStart,
+                w.end_time as workoutEnd,
                 w.workout_name as workoutName,
                 es.id as exerciseSessionId,
                 es.notes as exerciseSessionNotes,
