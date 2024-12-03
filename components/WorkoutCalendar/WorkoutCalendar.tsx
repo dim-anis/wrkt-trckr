@@ -11,7 +11,6 @@ import { memo, useEffect, useMemo } from 'react';
 import { WorkoutCalendarItemWithContainer } from './WorkoutCalendarItemDayWithContainer';
 import { Theme } from '@/lib/theme';
 import { useTheme } from '@shopify/restyle';
-import { SetWithExerciseData } from '@/types';
 
 const generateTheme = (theme: Theme): CalendarTheme => ({
   rowMonth: {
@@ -35,32 +34,36 @@ const generateTheme = (theme: Theme): CalendarTheme => ({
     }
   },
   itemDay: {
-    idle: ({ isPressed, isWeekend }) => ({
-      container: {
-        backgroundColor: isPressed ? theme.colors.secondary : 'transparent',
-        borderRadius: theme.borderRadii.sm
-      },
+    base: () => ({
       content: {
         color: theme.colors.primary
       }
     }),
+    idle: ({ isPressed }) => ({
+      container: {
+        backgroundColor: isPressed ? theme.colors.secondary : 'transparent',
+        borderRadius: theme.borderRadii.sm
+      }
+    }),
     today: ({ isPressed }) => ({
       container: {
+        borderWidth: 1,
         borderColor: theme.colors.secondary,
-        borderRadius: theme.borderRadii.sm,
-        backgroundColor: isPressed ? theme.colors.secondary : 'transparent'
+        borderRadius: theme.borderRadii.sm
       },
       content: {
         color: isPressed ? theme.colors.primaryForeground : theme.colors.primary
       }
     }),
-    active: ({ isEndOfRange, isStartOfRange }) => ({
+    active: () => ({
       container: {
-        backgroundColor: theme.colors.primary,
-        borderTopLeftRadius: isStartOfRange ? theme.borderRadii.sm : 0,
-        borderBottomLeftRadius: isStartOfRange ? theme.borderRadii.sm : 0,
-        borderTopRightRadius: isEndOfRange ? theme.borderRadii.sm : 0,
-        borderBottomRightRadius: isEndOfRange ? theme.borderRadii.sm : 0
+        backgroundColor: theme.colors.secondary,
+        borderWidth: 1,
+        borderColor: theme.colors.secondary,
+        borderTopLeftRadius: theme.borderRadii.sm,
+        borderBottomLeftRadius: theme.borderRadii.sm,
+        borderTopRightRadius: theme.borderRadii.sm,
+        borderBottomRightRadius: theme.borderRadii.sm
       },
       content: {
         color: theme.colors.primaryForeground
@@ -82,7 +85,7 @@ const BaseWorkoutCalendar = memo(
     workoutDayIds,
 
     ...buildCalendarParams
-  }: CalendarProps & { workoutDayIds: Map<string, SetWithExerciseData[]> }) => {
+  }: CalendarProps & { workoutDayIds: Set<string> }) => {
     const { calendarRowMonth, weeksList, weekDaysList } =
       useCalendar(buildCalendarParams);
 
@@ -127,7 +130,7 @@ const BaseWorkoutCalendar = memo(
 
               return (
                 <WorkoutCalendarItemWithContainer
-                  workoutDayIds={workoutDayIds}
+                  isWorkoutDay={workoutDayIds.has(dayProps.id)}
                   itemTheme={theme?.itemDay}
                   containerTheme={theme?.itemDayContainer}
                   dayHeight={calendarDayHeight}
@@ -151,11 +154,13 @@ BaseWorkoutCalendar.displayName = 'BaseWorkoutCalendar';
 
 export const WorkoutCalendar = memo(
   ({
+    calendarDayHeight,
     calendarActiveDateRanges,
     calendarMonthId,
     workoutDayIds,
+    theme,
     ...props
-  }: CalendarProps & { workoutDayIds: Map<string, SetWithExerciseData[]> }) => {
+  }: CalendarProps & { workoutDayIds: Set<string> }) => {
     const restyleTheme = useTheme<Theme>();
     const generatedTheme = useMemo(
       () => generateTheme(restyleTheme),
@@ -171,10 +176,12 @@ export const WorkoutCalendar = memo(
 
     return (
       <BaseWorkoutCalendar
-        {...props}
-        theme={generatedTheme}
+        calendarDayHeight={calendarDayHeight}
+        calendarActiveDateRanges={calendarActiveDateRanges}
         calendarMonthId={calendarMonthId}
         workoutDayIds={workoutDayIds}
+        theme={generatedTheme}
+        {...props}
       />
     );
   }

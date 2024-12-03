@@ -7,32 +7,22 @@ import type {
   CalendarItemDayProps,
   CalendarItemDayWithContainerProps
 } from '@marceloterreiro/flash-calendar';
-import { Ionicons } from '@expo/vector-icons';
 import { Box } from '../ui/Box';
-import { SetWithExerciseData } from '@/types';
-import { getAverageRPE, getRpeOptionColor } from '@/lib/utils';
-import { useTheme } from '@shopify/restyle';
-import { Theme } from '@/lib/theme';
 
 export const WorkoutCalendarItemWithContainer = ({
   children,
   metadata: baseMetadata,
   onPress,
-  theme,
   dayHeight,
   daySpacing,
   itemTheme,
   containerTheme,
-  workoutDayIds
+  isWorkoutDay
 }: CalendarItemDayWithContainerProps & {
   itemTheme: CalendarItemDayProps['theme'];
-  workoutDayIds: Map<string, SetWithExerciseData[]>;
+  isWorkoutDay: boolean;
 }) => {
   const metadata = useOptimizedDayMetadata(baseMetadata);
-  const restyleTheme = useTheme<Theme>();
-
-  const workoutDay = workoutDayIds.get(metadata.id);
-  const workoutDayAvgRpe = workoutDay ? getAverageRPE(workoutDay) : null;
 
   return (
     <Calendar.Item.Day.Container
@@ -52,29 +42,16 @@ export const WorkoutCalendarItemWithContainer = ({
         onPress={onPress}
         theme={itemTheme}
       >
-        <Box justifyContent="center" alignItems="center">
-          <Text
-            color={
-              metadata.state === 'active' ? 'primaryForeground' : 'primary'
-            }
-          >
+        <Box alignItems="center" justifyContent="center">
+          <Text color="primary" marginBottom="xs">
             {children}
           </Text>
-          {workoutDayIds.has(metadata.id) && (
-            <Box flexDirection="row" gap="xxs">
-              <Ionicons
-                name="ellipse"
-                color={
-                  workoutDayAvgRpe
-                    ? getRpeOptionColor(workoutDayAvgRpe, restyleTheme)
-                    : metadata.state === 'active'
-                      ? restyleTheme.colors.secondary
-                      : restyleTheme.colors.primary
-                }
-                size={4}
-              />
-            </Box>
-          )}
+          <Box
+            bg={isWorkoutDay ? 'primary' : undefined}
+            style={{ borderRadius: 50 }}
+            width={5}
+            aspectRatio={1 / 1}
+          ></Box>
         </Box>
       </Calendar.Item.Day>
     </Calendar.Item.Day.Container>
