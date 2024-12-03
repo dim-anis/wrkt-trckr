@@ -26,10 +26,7 @@ import {
   Workout
 } from '@/lib/zodSchemas';
 import { BottomSheetScrollView, BottomSheetView } from '@gorhom/bottom-sheet';
-import {
-  groupSetsByExerciseSessionId,
-  groupSetsByWorkoutId
-} from '@/lib/utils';
+import { groupWorkoutSessions } from '@/lib/utils';
 import { format, isToday, startOfMonth } from 'date-fns';
 import WorkoutStatsCard from '@/components/WorkoutStatsCard';
 import Button from '@/components/ui/Button';
@@ -107,17 +104,7 @@ export default function CalendarView() {
         );
 
         if (result) {
-          const workouts = groupSetsByWorkoutId(result);
-          const workoutsWithSetsGroupedByExercise = workouts.map(
-            ({ sets, workoutId, workoutName, workoutStart }) => ({
-              workoutId,
-              workoutStart,
-              workoutName,
-              exercises: groupSetsByExerciseSessionId(sets)
-            })
-          );
-
-          setWorkoutSessionsToShow(workoutsWithSetsGroupedByExercise);
+          setWorkoutSessionsToShow(groupWorkoutSessions(result));
         }
       }
 

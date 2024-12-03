@@ -11,6 +11,7 @@ import {
 } from './zodSchemas';
 import { addDays, endOfWeek, startOfWeek, subDays } from 'date-fns';
 import { Workout } from '@/app/screens/stats/(tabs)/types';
+import { Workout as ZodWorkout } from './zodSchemas';
 
 export type ValueOf<T> = T[keyof T];
 
@@ -136,39 +137,39 @@ export function groupSetsByWorkoutId<T extends WorkoutSession>(
   return grouped;
 }
 
-export function groupSetsByExerciseSessionId(
-  sets: (WorkoutSession & ExerciseSessionWithExercise & Set)[]
-): ExerciseSessionWithSets[] {
-  const grouped: (WorkoutSession & ExerciseSessionWithSets)[] = [];
-
-  sets.forEach(currSet => {
-    // Check if the last group is the same as the current exercise name
-    const lastGroup = grouped[grouped.length - 1];
-
-    if (
-      lastGroup &&
-      lastGroup.exerciseSessionId === currSet.exerciseSessionId
-    ) {
-      // If it's the same exercise, push to the existing group's sets
-      lastGroup.sets.push(currSet);
-    } else {
-      // If it's a new exercise, create a new group
-      grouped.push({
-        exerciseId: currSet.exerciseId,
-        exerciseName: currSet.exerciseName,
-        workoutId: currSet.workoutId,
-        workoutStart: currSet.workoutStart,
-        workoutName: currSet.workoutName,
-        exerciseSessionWeightUnit: currSet.exerciseSessionWeightUnit,
-        exerciseSessionNotes: currSet.exerciseSessionNotes,
-        exerciseSessionId: currSet.exerciseSessionId,
-        sets: [currSet]
-      });
-    }
-  });
-
-  return grouped;
-}
+// export function groupSetsByExerciseSessionId(
+//   sets: (WorkoutSession & ExerciseSessionWithExercise & Set)[]
+// ): ExerciseSessionWithSets[] {
+//   const grouped: (WorkoutSession & ExerciseSessionWithSets)[] = [];
+//
+//   sets.forEach(currSet => {
+//     // Check if the last group is the same as the current exercise name
+//     const lastGroup = grouped[grouped.length - 1];
+//
+//     if (
+//       lastGroup &&
+//       lastGroup.exerciseSessionId === currSet.exerciseSessionId
+//     ) {
+//       // If it's the same exercise, push to the existing group's sets
+//       lastGroup.sets.push(currSet);
+//     } else {
+//       // If it's a new exercise, create a new group
+//       grouped.push({
+//         exerciseId: currSet.exerciseId,
+//         exerciseName: currSet.exerciseName,
+//         workoutId: currSet.workoutId,
+//         workoutStart: currSet.workoutStart,
+//         workoutName: currSet.workoutName,
+//         exerciseSessionWeightUnit: currSet.exerciseSessionWeightUnit,
+//         exerciseSessionNotes: currSet.exerciseSessionNotes,
+//         exerciseSessionId: currSet.exerciseSessionId,
+//         sets: [currSet]
+//       });
+//     }
+//   });
+//
+//   return grouped;
+// }
 
 export function countItems<T extends string | number>(items: T[]) {
   return items.reduce((result, currVal) => {
@@ -367,4 +368,105 @@ export function groupSetsByWorkout(
   });
 
   return Object.values(workouts);
+}
+
+export function groupSetsByExerciseSessionId(
+  sets: (WorkoutSession & ExerciseSessionWithExercise & Set)[]
+): ExerciseSessionWithSets[] {
+  const grouped: ExerciseSessionWithSets[] = [];
+
+  sets.forEach(currSet => {
+    // Check if the last group is the same as the current exercise name
+    const lastGroup = grouped[grouped.length - 1];
+
+    if (
+      lastGroup &&
+      lastGroup.exerciseSessionId === currSet.exerciseSessionId
+    ) {
+      // If it's the same exercise, push to the existing group's sets
+      lastGroup.sets.push(currSet);
+    } else {
+      // If it's a new exercise, create a new group
+      grouped.push({
+        exerciseId: currSet.exerciseId,
+        exerciseName: currSet.exerciseName,
+        exerciseSessionWeightUnit: currSet.exerciseSessionWeightUnit,
+        exerciseSessionNotes: currSet.exerciseSessionNotes,
+        exerciseSessionId: currSet.exerciseSessionId,
+        sets: [currSet]
+      });
+    }
+  });
+
+  return grouped;
+}
+
+export function groupWorkoutSessions(
+  sets: (WorkoutSession & ExerciseSessionWithExercise & Set)[]
+): ZodWorkout['workouts'] {
+  const workoutSessionMap = new Map<
+    number,
+    {
+      workoutSessionData: WorkoutSession;
+      exercises: Map<
+        number,
+        {
+          exerciseSessionData: ExerciseSessionWithExercise;
+          sets: Set[];
+        }
+      >;
+    }
+  >();
+
+  for (const {
+    workoutId,
+    workoutName,
+    workoutStart,
+    ...exerciseSessionAndSetData
+  } of sets) {
+    const {
+      exerciseId,
+      exerciseName,
+      exerciseSessionId,
+      exerciseSessionNotes,
+      exerciseSessionWeightUnit,
+      ...setData
+    } = exerciseSessionAndSetData;
+
+    if (!workoutSessionMap.has(workoutId)) {
+      workoutSessionMap.set(workoutId, {
+        workoutSessionData: { workoutId, workoutName, workoutStart },
+        exercises: new Map()
+      });
+    }
+
+    const exerciseMap = workoutSessionMap.get(workoutId)!.exercises;
+
+    if (!exerciseMap.has(exerciseSessionId)) {
+      exerciseMap.set(exerciseSessionId!, {
+        exerciseSessionData: {
+          exerciseId,
+          exerciseSessionId,
+          exerciseName,
+          exerciseSessionNotes,
+          exerciseSessionWeightUnit
+        },
+        sets: []
+      });
+    }
+
+    exerciseMap.get(exerciseSessionId)!.sets.push({ ...setData, exerciseId });
+  }
+
+  return Array.from(workoutSessionMap.entries()).map(
+    ([_, { workoutSessionData, exercises }]) => ({
+      ...workoutSessionData,
+      exercises: Array.from(exercises.entries()).map(
+        ([_, { exerciseSessionData, sets }]) => ({
+          ...exerciseSessionData,
+          sets
+        })
+      )
+    })
+  );
 }

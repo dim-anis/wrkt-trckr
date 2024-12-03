@@ -6,11 +6,7 @@ import { Modal, useModal } from '@/components/ui/Modal';
 import { Text } from '@/components/ui/Text';
 import { Theme } from '@/lib/theme';
 import { toDateId } from '@marceloterreiro/flash-calendar';
-import {
-  groupSetsByExerciseSessionId,
-  groupSetsByWorkoutId,
-  showToast
-} from '@/lib/utils';
+import { groupWorkoutSessions, showToast } from '@/lib/utils';
 import { type TMenuItem } from '@/types';
 import { Ionicons } from '@expo/vector-icons';
 import { BottomSheetView } from '@gorhom/bottom-sheet';
@@ -109,6 +105,7 @@ export default function MainScreen() {
       let isActive = true;
 
       async function fetchSets() {
+        console.log('refetching');
         const result = await db.getAllAsync<
           WorkoutSession & ExerciseSessionWithExercise & Set
         >(
@@ -148,17 +145,7 @@ export default function MainScreen() {
           toDateId(new Date(currentDate))
         );
 
-        const workouts = groupSetsByWorkoutId(result);
-        const workoutsWithSetsGroupedByExercise = workouts.map(
-          ({ sets, workoutId, workoutName, workoutStart }) => ({
-            workoutId,
-            workoutStart,
-            workoutName,
-            exercises: groupSetsByExerciseSessionId(sets)
-          })
-        );
-
-        reset({ workouts: workoutsWithSetsGroupedByExercise });
+        reset({ workouts: groupWorkoutSessions(result) });
       }
 
       fetchSets();
@@ -316,9 +303,7 @@ export default function MainScreen() {
               {workoutSessions.length > 0 && (
                 <Pressable
                   hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
-                  onPress={handleSubmit(onSubmit, err =>
-                    console.log('new err', err)
-                  )}
+                  onPress={handleSubmit(onSubmit)}
                 >
                   <Ionicons
                     name={
@@ -405,7 +390,7 @@ export default function MainScreen() {
             href={{
               pathname: '/screens/search',
               params: {
-                workoutDate: isToday(currentDate) ? null : currentDate
+                workoutDate: currentDate
               }
             }}
             flexGrow={1}
@@ -426,7 +411,7 @@ export default function MainScreen() {
             href={{
               pathname: '/screens/search',
               params: {
-                workoutDate: isToday(currentDate) ? null : currentDate
+                workoutDate: currentDate
               }
             }}
             flexGrow={1}
