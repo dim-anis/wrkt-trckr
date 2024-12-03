@@ -120,7 +120,7 @@ export default function Search() {
       const exerciseSessionId = createExerciseSessionResult.lastInsertRowId;
 
       statements.push(
-        `INSERT INTO sets (workout_id, exercise_id, exercise_session_id, weight, reps, created_at) VALUES (${workoutId}, ${exercise.id}, ${exerciseSessionId}, 0, 0, '${dateISOString}');`
+        `INSERT INTO sets (workout_id, exercise_id, exercise_session_id, weight, reps) VALUES (${workoutId}, ${exercise.id}, ${exerciseSessionId}, 0, 0);`
       );
     }
 
