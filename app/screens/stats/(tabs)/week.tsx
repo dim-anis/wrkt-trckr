@@ -283,7 +283,7 @@ export default function WeekTab() {
             workout || {
               workoutId: null,
               workoutStart: formattedDate,
-              avrRpe: 0,
+              avgRpe: 0,
               setCount: 0,
               volume: 0
             }
