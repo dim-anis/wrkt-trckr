@@ -143,9 +143,6 @@ export default function Search() {
     if (updateWorkoutResult.changes > 0) {
       setWorkout(null);
 
-      // handleStartWorkout();
-      //
-      // startNextWorkoutModal.dismiss();
     }
   }
   useEffect(() => {
