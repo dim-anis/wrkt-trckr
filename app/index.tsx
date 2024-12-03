@@ -115,7 +115,7 @@ export default function MainScreen() {
           `
             SELECT
                 w.id as workoutId,
-                w.created_at as workoutStart,
+                w.start_time as workoutStart,
                 w.workout_name as workoutName,
                 es.id as exerciseSessionId,
                 es.notes as exerciseSessionNotes,
@@ -139,7 +139,7 @@ export default function MainScreen() {
                 exercise_session es
                 ON s.exercise_session_id = es.id
             WHERE
-                DATE(w.created_at) = ?
+                DATE(w.start_time) = ?
             ORDER BY
                 w.id,
                 es.id,

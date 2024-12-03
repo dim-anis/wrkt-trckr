@@ -173,9 +173,9 @@ export default function MonthTab() {
           FROM
               weekly_calendar
           LEFT JOIN workouts w
-              ON DATE(w.created_at) BETWEEN weekly_calendar.week_start AND weekly_calendar.week_end
-              AND DATE(w.created_at) >= DATE('${toDateId(dateRange.from)}')
-              AND DATE(w.created_at) <= DATE('${toDateId(dateRange.to)}')
+              ON DATE(w.start_time) BETWEEN weekly_calendar.week_start AND weekly_calendar.week_end
+              AND DATE(w.start_time) >= DATE('${toDateId(dateRange.from)}')
+              AND DATE(w.start_time) <= DATE('${toDateId(dateRange.to)}')
           LEFT JOIN
               sets s ON w.id = s.workout_id
           LEFT JOIN
@@ -281,9 +281,9 @@ export default function MonthTab() {
           FROM
               weekly_calendar
           LEFT JOIN workouts w
-              ON DATE(w.created_at) BETWEEN weekly_calendar.week_start AND weekly_calendar.week_end
-              AND DATE(w.created_at) >= DATE('${toDateId(dateRange.from)}')
-              AND DATE(w.created_at) <= DATE('${toDateId(dateRange.to)}')
+              ON DATE(w.start_time) BETWEEN weekly_calendar.week_start AND weekly_calendar.week_end
+              AND DATE(w.start_time) >= DATE('${toDateId(dateRange.from)}')
+              AND DATE(w.start_time) <= DATE('${toDateId(dateRange.to)}')
           LEFT JOIN
               sets s ON w.id = s.workout_id
           LEFT JOIN

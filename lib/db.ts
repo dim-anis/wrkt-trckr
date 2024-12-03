@@ -98,7 +98,8 @@ export async function migrateDbIfNeeded(db: SQLiteDatabase) {
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       workout_name TEXT,
       created_at TEXT DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
-      ended_at TEXT
+      start_time TEXT DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+      end_time TEXT
     );
     PRAGMA table_info(workouts);
     `);
@@ -158,7 +159,7 @@ export async function migrateDbIfNeeded(db: SQLiteDatabase) {
       setsGroupedByDate
     )) {
       const createWorkoutResult = await db.runAsync(
-        `INSERT INTO workouts (created_at) VALUES (?);`,
+        `INSERT INTO workouts (start_time) VALUES (?);`,
         workoutDate
       );
 

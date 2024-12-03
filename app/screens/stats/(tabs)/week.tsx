@@ -159,7 +159,7 @@ export default function WeekTab() {
           FROM
               calendar
           LEFT JOIN
-              workouts w ON DATE(w.created_at) = calendar.day
+              workouts w ON DATE(w.start_time) = calendar.day
           LEFT JOIN
               sets s ON w.id = s.workout_id
           LEFT JOIN
@@ -254,7 +254,7 @@ export default function WeekTab() {
           FROM
               calendar
           LEFT JOIN
-              workouts w ON DATE(w.created_at) = calendar.day
+              workouts w ON DATE(w.start_time) = calendar.day
           LEFT JOIN
               sets s ON w.id = s.workout_id
           LEFT JOIN

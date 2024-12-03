@@ -49,8 +49,8 @@ export default function Search() {
     const fetchWorkout = async () => {
       try {
         const existingWorkout = await db.getAllAsync<Workout>(
-          'SELECT * from workouts WHERE DATE(created_at) = ? AND ended_at IS NULL;',
-          toDateId(new Date(dateISOString))
+          'SELECT * from workouts WHERE DATE(start_time) = ? AND end_time IS NULL;',
+          workoutDateId
         );
 
         if (existingWorkout.length) {
@@ -66,7 +66,7 @@ export default function Search() {
     return () => {
       isActive = false;
     };
-  }, [dateISOString]);
+  }, [workoutDateId]);
 
   function handleExerciseChange(exerciseId: number, exercise: Exercise) {
     setSelectedExercises(prevSelected => {
@@ -99,8 +99,8 @@ export default function Search() {
     let workoutId = workout?.id;
     if (!workoutId) {
       const createWorkoutResult = await db.runAsync(
-        `INSERT INTO workouts (created_at) VALUES (?);`,
-        dateISOString
+        `INSERT INTO workouts (start_time) VALUES (?);`,
+        workoutTimestamp.toISOString()
       );
 
       workoutId = createWorkoutResult.lastInsertRowId;
