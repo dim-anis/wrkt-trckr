@@ -13,30 +13,16 @@ import {
 } from '@shopify/react-native-skia';
 import { useSQLiteContext } from 'expo-sqlite';
 import { useCallback, useEffect, useState } from 'react';
-import {
-  addDays,
-  endOfWeek,
-  format,
-  formatDuration,
-  intervalToDuration,
-  startOfWeek,
-  subDays
-} from 'date-fns';
+import { addDays, endOfWeek, format, startOfWeek, subDays } from 'date-fns';
 import Badge from '@/components/Badge';
-import { WorkoutSession } from '@/lib/zodSchemas';
 import { Pressable, ScrollView } from 'react-native';
 import { Ionicons, FontAwesome6 } from '@expo/vector-icons';
-import {
-  formatNumber,
-  getDefaultDateRange,
-  roundToNearestHalf
-} from '@/lib/utils';
+import { getDefaultDateRange, groupSetsByWorkout } from '@/lib/utils';
 import { useDerivedValue } from 'react-native-reanimated';
 import { Modal, useModal } from '@/components/ui/Modal';
 import { BottomSheetView } from '@gorhom/bottom-sheet';
 import Button from '@/components/ui/Button';
 import { toDateId } from '@marceloterreiro/flash-calendar';
-import Separator from '@/components/Separator';
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import {
   chartGroupByOptions,
