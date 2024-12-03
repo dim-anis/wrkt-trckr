@@ -278,11 +278,13 @@ export default function MainScreen() {
                   size={24}
                 />
               </Pressable>
-              <Text variant="header2" color="primary">
-                {isToday(currentDate)
-                  ? 'Today'
-                  : format(currentDate, 'MMM, dd')}
-              </Text>
+              <Pressable onPress={() => setCurrentDate(todayDateId)}>
+                <Text variant="header2" color="primary">
+                  {isToday(currentDate)
+                    ? 'Today'
+                    : format(currentDate, 'MMM, dd')}
+                </Text>
+              </Pressable>
               <Pressable
                 hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
                 onPress={() => {
@@ -316,16 +318,6 @@ export default function MainScreen() {
                   />
                 </Pressable>
               )}
-              <Pressable
-                hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
-                onPress={() => setCurrentDate(todayDateId)}
-              >
-                <Ionicons
-                  name="calendar-number-outline"
-                  color={theme.colors.primary}
-                  size={20}
-                />
-              </Pressable>
               <Pressable
                 hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
                 onPress={() =>
