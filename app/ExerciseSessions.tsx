@@ -178,7 +178,7 @@ const ExerciseSessions = ({
               >
                 <MenuItem
                   label={'Delete exercise'}
-                  textColor="destructive"
+                  color="destructive"
                   iconLeft={
                     <Ionicons
                       name="trash-outline"

@@ -2,19 +2,19 @@ import { ReactElement } from 'react';
 import { Box } from './ui/Box';
 import { Text } from './ui/Text';
 import { Theme } from '@/lib/theme';
+import { TextProps } from '@shopify/restyle';
 
 type Props = {
   label: string;
-  textColor?: keyof Theme['colors'];
   iconLeft?: ReactElement;
   iconRight?: ReactElement;
-};
+} & TextProps<Theme>;
 
 export default function MenuItem({
   label,
-  textColor = 'primary',
   iconLeft,
-  iconRight
+  iconRight,
+  ...textProps
 }: Props) {
   return (
     <Box
@@ -25,7 +25,7 @@ export default function MenuItem({
     >
       <Box flexDirection="row" alignItems="center">
         {iconLeft && iconLeft}
-        <Text color={textColor} fontSize={18} marginLeft="m">
+        <Text fontSize={18} marginLeft="m" color="primary" {...textProps}>
           {label}
         </Text>
       </Box>
