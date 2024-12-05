@@ -73,6 +73,9 @@ export const Input = React.forwardRef<RNTextInput, NInputProps>(
       label,
       minHeight,
       borderWidth = 1,
+      borderTopWidth,
+      borderRightWidth,
+      borderLeftWidth,
       alignLabel = 'center',
       paddingVertical = 's',
       paddingHorizontal = 'm',
@@ -126,6 +129,9 @@ export const Input = React.forwardRef<RNTextInput, NInputProps>(
             justifyContent="center"
             borderColor={inputBorderColor}
             borderWidth={borderWidth}
+            borderTopWidth={borderTopWidth}
+            borderLeftWidth={borderLeftWidth}
+            borderRightWidth={borderRightWidth}
             borderRadius="sm"
             height={height}
             minHeight={minHeight}
