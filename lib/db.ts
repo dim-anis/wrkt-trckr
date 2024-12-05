@@ -4,11 +4,14 @@ import {
   exercises,
   sets
 } from '@/assets/misc/exerciseData';
+import { eachDayOfInterval, subDays } from 'date-fns';
+import { toDateId } from '@marceloterreiro/flash-calendar';
 
 const dropTablesQuery = `
   PRAGMA writable_schema = 1;
 
   DROP TABLE IF EXISTS user_settings;
+  DROP TABLE IF EXISTS weighins;
   DROP TABLE IF EXISTS exercise_categories;
   DROP TABLE IF EXISTS exercises;
   DROP TABLE IF EXISTS sets;
@@ -46,6 +49,35 @@ export async function migrateDbIfNeeded(db: SQLiteDatabase) {
     // add settings to <user_settings> table
     // set <isMetric> to '1' (true) by default
     await db.runAsync('INSERT INTO user_settings DEFAULT VALUES;');
+
+    // create <weighins> table (weight, weight_unit)
+    await db.execAsync(`
+    PRAGMA journal_mode = 'wal';
+    CREATE TABLE weighins (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      weight REAL NOT NULL,
+      weight_unit TEXT CHECK(weight_unit IN ('kg', 'lb')) NOT NULL DEFAULT 'kg',
+      date TEXT NOT NULL,
+      UNIQUE(date)
+    );
+    `);
+
+    // create some dummy data for <weighins>
+    const end = new Date();
+    const start = subDays(end, 7);
+    const range = eachDayOfInterval({ start, end });
+
+    let weight = 90;
+    for (const date of range) {
+      await db.runAsync(
+        `INSERT INTO weighins (date, weight, weight_unit) VALUES (?, ?, ?)`,
+        toDateId(date),
+        weight,
+        'kg'
+      );
+
+      weight -= 0.5;
+    }
 
     // #### create <exercise_categories> table (id, name) ####
     await db.execAsync(`

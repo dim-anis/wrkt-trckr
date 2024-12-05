@@ -36,8 +36,8 @@ const menuItems: TMenuItem[] = [
   },
   {
     id: 'settings-tracker',
-    href: '/screens/settings',
-    label: 'Body tracker',
+    href: '/screens/settings/bodyMetrics',
+    label: 'Body metrics',
     icon: 'body-outline'
   },
   {

@@ -18,27 +18,31 @@ const settingsMenu: TMenuItem[] = [
     label: 'Feature settings',
     menuItems: [
       {
-        id: 'meso',
-        label: 'Mesocycle',
-        href: '/screens/settings',
-        icon: 'analytics-outline'
-      },
-
-      {
-        id: 'progression',
-        label: 'Progression',
-        href: '/screens/settings',
-        icon: 'bar-chart-outline'
-      },
-      {
-        id: 'overloading',
-        label: 'Overloading scheme',
-        href: '/screens/settings',
-        icon: 'analytics-outline'
+        id: 'body-metrics',
+        label: 'Body metrics',
+        href: '/screens/settings/bodyMetrics',
+        icon: 'body-outline'
       }
+      // {
+      //   id: 'meso',
+      //   label: 'Mesocycle',
+      //   href: '/screens/settings',
+      //   icon: 'analytics-outline'
+      // },
+      // {
+      //   id: 'progression',
+      //   label: 'Progression',
+      //   href: '/screens/settings',
+      //   icon: 'bar-chart-outline'
+      // },
+      // {
+      //   id: 'overloading',
+      //   label: 'Overloading scheme',
+      //   href: '/screens/settings',
+      //   icon: 'analytics-outline'
+      // }
     ]
   },
-
   {
     id: 'data',
     label: 'Data',
@@ -78,7 +82,10 @@ const themeRadioItems = [
 type ThemeOption = (typeof themeRadioItems)[number]['value'];
 type WeightUnitOption = (typeof weightUnitRadioItems)[number]['value'];
 
-// type WeightUnitValues = ValueOf<(typeof weightUnitRadioItems)[number]['value']>;
+const borderStyles = {
+  borderBottomWidth: 1,
+  borderBottomColor: 'mutedForeground'
+} as const;
 
 export default function Settings() {
   const theme = useTheme<Theme>();
@@ -138,7 +145,12 @@ export default function Settings() {
   }
 
   return (
-    <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
+    <ScrollView
+      contentContainerStyle={{
+        flexGrow: 1
+      }}
+      style={{ backgroundColor: theme.colors.background }}
+    >
       <Box padding="m" backgroundColor="background" flex={1} gap="l">
         <Stack.Screen
           options={{
@@ -146,73 +158,126 @@ export default function Settings() {
             title: 'Settings'
           }}
         />
-        {settingsMenu.map(({ id, label, menuItems }) => (
-          <Box key={id}>
-            <Text variant="header2" color="primary">
-              {label}
-            </Text>
-            <Box marginTop="m">
-              {menuItems &&
-                menuItems.map(item => (
-                  <ExpoLink key={item.id} href={item.href!} asChild>
-                    <Pressable>
-                      <MenuItem
-                        label={item.label}
-                        iconLeft={
-                          <Ionicons
-                            name={item.icon}
-                            size={20}
-                            color={theme.colors.primary}
-                          />
-                        }
-                        iconRight={
-                          <Ionicons
-                            name="chevron-forward"
-                            size={20}
-                            color={theme.colors.primary}
-                          />
-                        }
-                      />
-                    </Pressable>
-                  </ExpoLink>
-                ))}
+        {settingsMenu.map(({ id, label, menuItems }) => {
+          return (
+            <Box key={id} gap="m">
+              <Text variant="header2" color="primary">
+                {label}
+              </Text>
+              <Box
+                paddingHorizontal="m"
+                borderRadius="lg"
+                backgroundColor="muted"
+              >
+                {menuItems &&
+                  menuItems.map((item, idx) => {
+                    return (
+                      <ExpoLink key={idx} href={item.href!} asChild>
+                        <Pressable>
+                          <Box
+                            paddingVertical="s"
+                            {...(idx < menuItems.length - 1
+                              ? borderStyles
+                              : {})}
+                          >
+                            <MenuItem
+                              label={item.label}
+                              iconLeft={
+                                <Ionicons
+                                  name={item.icon}
+                                  size={20}
+                                  color={theme.colors.primary}
+                                />
+                              }
+                              iconRight={
+                                <Ionicons
+                                  name="chevron-forward"
+                                  size={20}
+                                  color={theme.colors.primary}
+                                />
+                              }
+                            />
+                          </Box>
+                        </Pressable>
+                      </ExpoLink>
+                    );
+                  })}
+              </Box>
             </Box>
+          );
+        })}
+
+        <Box gap="m">
+          <Text variant="header2" color="primary">
+            Weight units
+          </Text>
+          <Box
+            paddingHorizontal="m"
+            paddingVertical="xs"
+            borderRadius="lg"
+            backgroundColor="muted"
+          >
+            {weightUnitRadioItems.map((item, idx) => (
+              <Box
+                key={idx}
+                flexDirection="row"
+                alignItems="center"
+                paddingVertical="s"
+                {...(idx < weightUnitRadioItems.length - 1 ? borderStyles : {})}
+              >
+                <Radio.Root
+                  checked={userSettings?.is_metric === item.value}
+                  onChange={() => handleWeightUnitChange(item.value)}
+                  paddingVertical="s"
+                  flexDirection="row"
+                  flex={1}
+                  justifyContent="space-between"
+                  accessibilityLabel="radio button"
+                >
+                  <Radio.Label text={item.label} />
+                  <Radio.Icon
+                    checked={userSettings?.is_metric === item.value}
+                  />
+                </Radio.Root>
+              </Box>
+            ))}
           </Box>
-        ))}
+        </Box>
 
-        <Text variant="header2" color="primary">
-          Weight units
-        </Text>
-        {weightUnitRadioItems.map(item => (
-          <Radio.Root
-            key={item.value}
-            checked={userSettings?.is_metric === item.value}
-            onChange={() => handleWeightUnitChange(item.value)}
-            flexDirection="row"
-            justifyContent="space-between"
-            accessibilityLabel="radio button"
+        <Box gap="m">
+          <Text variant="header2" color="primary">
+            Theme
+          </Text>
+          <Box
+            paddingHorizontal="m"
+            paddingVertical="xs"
+            borderRadius="lg"
+            backgroundColor="muted"
           >
-            <Radio.Label text={item.label} />
-            <Radio.Icon checked={userSettings?.is_metric === item.value} />
-          </Radio.Root>
-        ))}
-
-        <Text variant="header2" color="primary">
-          Theme
-        </Text>
-        {themeRadioItems.map(item => (
-          <Radio.Root
-            key={item.value}
-            checked={userSettings?.is_dark === item.value}
-            onChange={() => handleThemeChange(item.value)}
-            flexDirection="row"
-            justifyContent="space-between"
-            accessibilityLabel="radio button"
-          >
-            <Radio.Label text={item.label} />
-            <Radio.Icon checked={userSettings?.is_dark === item.value} />
-          </Radio.Root>
-        ))}
+            {themeRadioItems.map((item, idx) => (
+              <Box
+                key={idx}
+                flexDirection="row"
+                alignItems="center"
+                paddingVertical="s"
+                {...(idx < themeRadioItems.length - 1 ? borderStyles : {})}
+              >
+                <Radio.Root
+                  checked={userSettings?.is_dark === item.value}
+                  onChange={() => handleThemeChange(item.value)}
+                  paddingVertical="s"
+                  flex={1}
+                  flexDirection="row"
+                  justifyContent="space-between"
+                  accessibilityLabel="radio button"
+                >
+                  <Radio.Label text={item.label} />
+                  <Radio.Icon checked={userSettings?.is_dark === item.value} />
+                </Radio.Root>
+              </Box>
+            ))}
+          </Box>
+        </Box>
       </Box>
     </ScrollView>
   );

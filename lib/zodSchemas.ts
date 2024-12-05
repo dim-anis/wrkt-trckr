@@ -90,3 +90,13 @@ export type ExerciseSessionWithSets = z.infer<
   typeof exerciseSessionWithSetsSchema
 >;
 export type Exercise = z.infer<typeof exerciseSchema>;
+
+export const bodyMetricsSchema = z.object({
+  weight: z.preprocess(
+    val => (val === '' ? undefined : val),
+    z.coerce.number().int().positive().min(1)
+  ),
+  weightUnit: z.enum(['kg', 'lb']).default('kg'),
+  date: z.string()
+});
+export type BodyMetrics = z.infer<typeof bodyMetricsSchema>;
