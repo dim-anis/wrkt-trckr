@@ -360,8 +360,13 @@ export default function MainScreen() {
           position="absolute"
           aspectRatio={'1/1'}
           width={48}
-          right={25}
-          bottom={25}
+          right={24}
+          bottom={48}
+          shadowOffset={{ width: 0, height: 2 }}
+          shadowOpacity={0.25}
+          shadowRadius={3.84}
+          elevation={5}
+          style={{ shadowColor: '#000' }}
         >
           <Link
             href={{
@@ -376,7 +381,7 @@ export default function MainScreen() {
             <Pressable>
               <Ionicons
                 name="add-outline"
-                size={24}
+                size={28}
                 color={theme.colors.primaryForeground}
               />
             </Pressable>
