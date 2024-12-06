@@ -92,6 +92,7 @@ export type ExerciseSessionWithSets = z.infer<
 export type Exercise = z.infer<typeof exerciseSchema>;
 
 export const weighInSchema = z.object({
+  id: z.number().optional(),
   weight: z.preprocess(
     val => (val === '' ? undefined : val),
     z.coerce.number().int().positive().min(1)
