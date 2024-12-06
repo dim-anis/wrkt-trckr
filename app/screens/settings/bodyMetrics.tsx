@@ -4,13 +4,13 @@ import Button from '@/components/ui/Button';
 import { ControlledInput } from '@/components/ui/Input';
 import { Modal, useModal } from '@/components/ui/Modal';
 import { Theme } from '@/lib/theme';
-import { bodyMetricsSchema, type BodyMetrics } from '@/lib/zodSchemas';
+import { weighInSchema, type WeighIn } from '@/lib/zodSchemas';
 import { Ionicons } from '@expo/vector-icons';
 import { BottomSheetScrollView } from '@gorhom/bottom-sheet';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useTheme } from '@shopify/restyle';
 import { format } from 'date-fns';
-import { Stack, router } from 'expo-router';
+import { Stack } from 'expo-router';
 import { useForm } from 'react-hook-form';
 import { ControlledSelect } from '@/components/ui/Select';
 import { useSQLiteContext } from 'expo-sqlite';
@@ -31,10 +31,10 @@ export default function BodyMetricsPage() {
   const theme = useTheme<Theme>();
   const db = useSQLiteContext();
 
-  const [weighins, setWeighins] = useState<BodyMetrics[]>([]);
+  const [weighins, setWeighins] = useState<WeighIn[]>([]);
 
-  const { control, reset, handleSubmit, getValues } = useForm<BodyMetrics>({
-    resolver: zodResolver(bodyMetricsSchema),
+  const { control, reset, handleSubmit, getValues } = useForm<WeighIn>({
+    resolver: zodResolver(weighInSchema),
     defaultValues: { weight: 0, weightUnit: 'kg' }
   });
 
@@ -79,7 +79,7 @@ export default function BodyMetricsPage() {
 
     const fetchData = async () => {
       try {
-        const bodyMetrics = await db.getAllAsync<BodyMetrics>(
+        const bodyMetrics = await db.getAllAsync<WeighIn>(
           `SELECT id, date, weight, weight_unit as weightUnit from weighins ORDER BY date DESC LIMIT 10;`
         );
 
@@ -99,9 +99,9 @@ export default function BodyMetricsPage() {
     };
   }, []);
 
-  async function onSubmit(formData: BodyMetrics) {
+  async function onSubmit(formData: WeighIn) {
     const { success, data, error } =
-      await bodyMetricsSchema.safeParseAsync(formData);
+      await weighInSchema.safeParseAsync(formData);
 
     if (error) {
       console.error(error);
