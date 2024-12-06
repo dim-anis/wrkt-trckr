@@ -95,7 +95,7 @@ export const weighInSchema = z.object({
   id: z.number().optional(),
   weight: z.preprocess(
     val => (val === '' ? undefined : val),
-    z.coerce.number().int().positive().min(1)
+    z.coerce.number().positive().min(1)
   ),
   weightUnit: z.enum(['kg', 'lb']).default('kg'),
   date: z.string()
