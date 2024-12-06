@@ -80,11 +80,11 @@ export default function BodyMetricsPage() {
     const fetchData = async () => {
       try {
         const bodyMetrics = await db.getAllAsync<WeighIn>(
-          `SELECT id, date, weight, weight_unit as weightUnit from weighins ORDER BY date DESC LIMIT 10;`
+          `SELECT id, date, weight, weight_unit as weightUnit from weighins LIMIT 10;`
         );
 
         if (bodyMetrics) {
-          reset(bodyMetrics[0]);
+          reset(bodyMetrics.at(-1));
           setWeighins(bodyMetrics);
         }
       } catch (error) {
@@ -110,11 +110,11 @@ export default function BodyMetricsPage() {
     if (success) {
       const { weight, weightUnit, date } = data;
 
-      const lastWeighinDate = weighins[0].date;
+      const lastWeighinDate = weighins.at(-1)?.date;
       setWeighins(
         date === lastWeighinDate
-          ? [{ weightUnit, weight, date }, ...weighins.slice(1)]
-          : [{ weightUnit, weight, date }, ...weighins]
+          ? [...weighins.slice(0, -1), { weightUnit, weight, date }]
+          : [...weighins, { weightUnit, weight, date }]
       );
 
       const result = await db.runAsync(
@@ -168,14 +168,14 @@ export default function BodyMetricsPage() {
                       Weight
                     </Text>
                     <Text color="mutedForeground">
-                      {format(weighins[0].date, 'MMM d, yyyy')}
+                      {format(weighins.at(-1)!.date, 'MMM d, yyyy')}
                     </Text>
                   </Box>
                   <Text
                     variant="header3"
                     fontWeight={500}
                     color="primary"
-                  >{`${weighins[0].weight} ${weighins[0].weightUnit}`}</Text>
+                  >{`${weighins.at(-1)!.weight} ${weighins.at(-1)?.weightUnit}`}</Text>
                 </Box>
                 <Button
                   width={50}
@@ -286,35 +286,38 @@ export default function BodyMetricsPage() {
               {/* </Pressable> */}
             </Box>
             <Box>
-              {weighins.map((entry, idx) => (
-                <Box key={idx} flexDirection="row" alignItems="center">
-                  <Box
-                    bg="muted"
-                    width={50}
-                    borderRadius="lg"
-                    aspectRatio={1 / 1}
-                    marginRight="m"
-                    alignItems="center"
-                    justifyContent="center"
-                  >
-                    <Ionicons
-                      name="scale-outline"
-                      size={25}
-                      color={theme.colors.mutedForeground}
-                    />
-                  </Box>
-                  <Box paddingVertical="m">
-                    <Box gap="xs">
-                      <Text color="mutedForeground" fontSize={16}>
-                        {format(entry.date, 'EEEE, MMMM d')}
-                      </Text>
-                      <Text color="primary" variant="body" fontWeight={500}>
-                        {`${entry.weight} ${entry.weightUnit}`}
-                      </Text>
+              {weighins
+                .slice()
+                .reverse()
+                .map((entry, idx) => (
+                  <Box key={idx} flexDirection="row" alignItems="center">
+                    <Box
+                      bg="muted"
+                      width={50}
+                      borderRadius="lg"
+                      aspectRatio={1 / 1}
+                      marginRight="m"
+                      alignItems="center"
+                      justifyContent="center"
+                    >
+                      <Ionicons
+                        name="scale-outline"
+                        size={25}
+                        color={theme.colors.mutedForeground}
+                      />
+                    </Box>
+                    <Box paddingVertical="m">
+                      <Box gap="xs">
+                        <Text color="mutedForeground" fontSize={16}>
+                          {format(entry.date, 'EEEE, MMMM d')}
+                        </Text>
+                        <Text color="primary" variant="body" fontWeight={500}>
+                          {`${entry.weight} ${entry.weightUnit}`}
+                        </Text>
+                      </Box>
                     </Box>
                   </Box>
-                </Box>
-              ))}
+                ))}
             </Box>
           </Box>
           <Modal
