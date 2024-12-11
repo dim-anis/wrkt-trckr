@@ -101,3 +101,12 @@ export const weighInSchema = z.object({
   date: z.string()
 });
 export type WeighIn = z.infer<typeof weighInSchema>;
+
+export const templateSchema = z.object({
+  id: z.number().optional(),
+  name: z.string().min(1, { message: 'Template name is required' }),
+  selectedExercises: z
+    .array(exerciseSchema.extend({ setCount: z.number().default(1) }))
+    .min(1, { message: 'Select at least 1 exercise' })
+});
+export type Template = z.infer<typeof templateSchema>;

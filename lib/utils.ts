@@ -6,7 +6,8 @@ import {
   Set,
   ExerciseSessionWithExercise,
   Exercise,
-  ExerciseCategory
+  ExerciseCategory,
+  Template
 } from './zodSchemas';
 import { addDays, endOfWeek, startOfWeek, subDays } from 'date-fns';
 import { Workout } from '@/app/screens/stats/(tabs)/types';
@@ -410,4 +411,38 @@ export function groupWorkoutSessions(
       )
     })
   );
+}
+
+export function groupUserTemplatesById(
+  templates: {
+    id: number;
+    name: string;
+    exerciseName: string;
+    exerciseId: number;
+    setCount: number;
+  }[]
+) {
+  const grouped: Template[] = [];
+
+  templates.forEach(currTemplate => {
+    const lastGroup = grouped[grouped.length - 1];
+
+    if (lastGroup && lastGroup.id === currTemplate.id) {
+      lastGroup.selectedExercises.push(currTemplate);
+    } else {
+      grouped.push({
+        id: currTemplate.id,
+        name: currTemplate.name,
+        selectedExercises: [
+          {
+            exerciseName: currTemplate.exerciseName,
+            exerciseId: currTemplate.exerciseId,
+            setCount: currTemplate.setCount
+          }
+        ]
+      });
+    }
+  });
+
+  return grouped;
 }

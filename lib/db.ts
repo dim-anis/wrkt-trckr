@@ -17,6 +17,8 @@ const dropTablesQuery = `
   DROP TABLE IF EXISTS sets;
   DROP TABLE IF EXISTS workouts;
   DROP TABLE IF EXISTS exercise_session;
+  DROP TABLE IF EXISTS templates;
+  DROP TABLE IF EXISTS template_exercises;
 
   PRAGMA user_version = 0;
   PRAGMA writable_schema = 0;
@@ -247,6 +249,31 @@ export async function migrateDbIfNeeded(db: SQLiteDatabase) {
         });
       }
     }
+
+    // create table <templates>
+    await db.execAsync(`
+    PRAGMA journal_mode = 'wal';
+    CREATE TABLE templates (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL UNIQUE,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
+    PRAGMA table_info(templates);
+    `);
+
+    // create table <template_exercises>
+    await db.execAsync(`
+    PRAGMA journal_mode = 'wal';
+    CREATE TABLE template_exercises (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      template_id INTEGER NOT NULL,
+      exercise_id INTEGER NOT NULL,
+      set_count INTEGER DEFAULT 1,
+      FOREIGN KEY (exercise_id) REFERENCES exercises(id),
+      FOREIGN KEY (template_id) REFERENCES templates(id) ON DELETE CASCADE
+    );
+    PRAGMA table_info(template_exercises);
+    `);
 
     currentDbVersion = 1;
   }
