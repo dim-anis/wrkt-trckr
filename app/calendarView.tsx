@@ -234,7 +234,6 @@ export default function CalendarView() {
       handleCreateNewWorkout(sourceWorkout.workoutId);
     } else {
       copyWorkoutModal.present({
-        sourceWorkoutDate: sourceWorkout.workoutStart,
         sourceWorkoutId: sourceWorkout.workoutId,
         targetWorkoutId,
         sourceWorkoutExerciseSessions: sourceWorkout.exercises
