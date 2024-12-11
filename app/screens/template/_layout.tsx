@@ -14,12 +14,8 @@ export default function Layout() {
         headerTintColor: theme.colors.primary
       }}
     >
-      <Stack.Screen name="categories/index" />
-      <Stack.Screen name="template" />
-      <Stack.Screen name="exercises/index" />
-      <Stack.Screen name="search" />
-      <Stack.Screen name="settings" />
-      <Stack.Screen name="stats" />
+      <Stack.Screen name="index" />
+      <Stack.Screen name="createTemplate" />
     </Stack>
   );
 }
