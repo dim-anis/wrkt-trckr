@@ -50,7 +50,7 @@ const menuItems: TMenuItem[] = [
     id: 'settings',
     href: '/screens/settings',
     label: 'Copy workout',
-    icon: 'copy-outline'
+    icon: 'documents-outline'
   },
   {
     id: 'settings',
@@ -408,7 +408,7 @@ export default function MainScreen() {
           <Link
             href={{
               pathname: '/screens/template',
-              params: { workoutDateId: currentDate }
+              params: { workoutDate: currentDate }
             }}
             flexGrow={1}
             variant="secondary"
@@ -446,6 +446,27 @@ export default function MainScreen() {
                 iconLeft={
                   <Ionicons
                     name="calendar-outline"
+                    size={20}
+                    color={theme.colors.primary}
+                  />
+                }
+              />
+            </Pressable>
+
+            <Pressable
+              onPress={() => {
+                dismissMore();
+                router.navigate({
+                  pathname: '/screens/template',
+                  params: { workoutDate: currentDate }
+                });
+              }}
+            >
+              <MenuItem
+                label={'Use template'}
+                iconLeft={
+                  <Ionicons
+                    name="copy-outline"
                     size={20}
                     color={theme.colors.primary}
                   />
