@@ -171,8 +171,8 @@ export const Select = (props: React.PropsWithChildren<SelectProps>) => {
           {children ? (
             children
           ) : (
-            <>
-              {label && <Text>{label}</Text>}
+            <Box gap="s">
+              {label && <Text color="mutedForeground">{label}</Text>}
               <Box
                 flexDirection="row"
                 alignItems="center"
@@ -201,7 +201,7 @@ export const Select = (props: React.PropsWithChildren<SelectProps>) => {
                   }
                 />
               </Box>
-            </>
+            </Box>
           )}
           {error && <Text color="destructive">{error}</Text>}
         </Box>
