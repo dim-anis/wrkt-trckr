@@ -33,6 +33,9 @@ export function roundToNearestHalf(number: number) {
   return Math.round(number * 2) / 2;
 }
 
+export const convertToLbs = (kg: number) => roundToNearestHalf(kg * 2.20462);
+export const convertToKg = (lbs: number) => roundToNearestHalf(lbs / 2.20462);
+
 // TODO: handle bodyweight exercises
 export function getTotalVolume(sets: Set[]) {
   const userWeight = 92;
