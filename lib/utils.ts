@@ -7,7 +7,8 @@ import {
   ExerciseSessionWithExercise,
   Exercise,
   ExerciseCategory,
-  Template
+  Template,
+  ExerciseSession
 } from './zodSchemas';
 import { addDays, endOfWeek, startOfWeek, subDays } from 'date-fns';
 import { Workout } from '@/app/screens/stats/(tabs)/types';
@@ -215,7 +216,7 @@ export function getDefaultDateRange(type: 'Day' | 'Week' | '4W') {
 }
 
 export function groupSetsByWorkout(
-  sets: (WorkoutSession & Exercise & ExerciseCategory & Set)[]
+  sets: (WorkoutSession & Exercise & ExerciseSession & ExerciseCategory & Set)[]
 ): Workout[] {
   const workouts: { [key: number]: Workout } = {};
 
@@ -226,6 +227,9 @@ export function groupSetsByWorkout(
       workoutName,
       exerciseName,
       exerciseId,
+      exerciseSessionId,
+      exerciseSessionNotes,
+      exerciseSessionWeightUnit,
       categoryName,
       categoryId,
       reps,
@@ -278,7 +282,10 @@ export function groupSetsByWorkout(
     );
     if (!exercise) {
       exercise = {
-        id: exerciseId!,
+        exerciseId,
+        exerciseSessionId,
+        exerciseSessionNotes,
+        exerciseSessionWeightUnit,
         exerciseName,
         sets: [],
         stats: {
@@ -310,7 +317,7 @@ export function groupSetsByWorkout(
     );
     if (!category) {
       category = {
-        id: categoryId!,
+        categoryId,
         categoryName,
         sets: [],
         stats: {
