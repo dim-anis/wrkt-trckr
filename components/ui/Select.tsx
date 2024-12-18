@@ -17,7 +17,7 @@ import { useTheme } from '@shopify/restyle';
 import { Theme } from '@/lib/theme';
 import { FlashList } from '@shopify/flash-list';
 
-export type OptionItem = { label: string; value: string | number };
+export type OptionItem = { label: string; value: string | number | boolean };
 
 type OptionsProps = {
   options: OptionItem[];
