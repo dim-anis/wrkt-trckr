@@ -65,12 +65,14 @@ export default function Button({
         pointerEvents={disabled ? 'none' : 'auto'}
         {...props}
       >
-        {icon && icon}
-        {label && (
-          <Text variant="buttonLabel" labelVariant={rest.variant}>
-            {label}
-          </Text>
-        )}
+        <Box flexDirection="row" alignItems="center" gap="s">
+          {icon && icon}
+          {label && (
+            <Text variant="buttonLabel" labelVariant={rest.variant}>
+              {label}
+            </Text>
+          )}
+        </Box>
       </Box>
     </Pressable>
   );
