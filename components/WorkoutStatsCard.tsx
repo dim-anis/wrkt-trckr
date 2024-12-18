@@ -4,28 +4,15 @@ import { Text } from './ui/Text';
 import Separator from './Separator';
 import { formatNumber, roundToNearestHalf } from '@/lib/utils';
 import ExerciseList from './ExerciseList';
-import { Exercise, Set } from '@/lib/zodSchemas';
-
-type Props = {
-  workoutName: string;
-  workoutStart: string;
-  exercises: (Exercise & {
-    sets: Set[];
-  })[];
-  workoutStats?: {
-    volume: number;
-    totalTime: number;
-    setCount: number;
-    avgRpe: number | null;
-  };
-};
+import { Workout } from '@/app/screens/stats/(tabs)/types';
 
 export default function WorkoutStatsCard({
   workoutName,
   workoutStart,
   workoutStats,
-  exercises
-}: Props) {
+  exercises,
+  isMetric = true
+}: Omit<Workout, 'categories' | 'workoutId'> & { isMetric: boolean }) {
   return (
     <Box>
       <Box
