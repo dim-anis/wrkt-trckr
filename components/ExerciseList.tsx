@@ -1,13 +1,13 @@
-import { Exercise, Set } from '@/lib/zodSchemas';
+import { Exercise, ExerciseSession, Set } from '@/lib/zodSchemas';
 import Separator from './Separator';
 import { Box } from './ui/Box';
 import { Text } from './ui/Text';
 
 type Props<T extends Exercise> = { exercises: T[] };
 
-export default function ExerciseList<T extends Exercise & { sets: Set[] }>({
-  exercises
-}: Props<T>) {
+export default function ExerciseList<
+  T extends Exercise & ExerciseSession & { sets: Set[] }
+>({ exercises }: Props<T>) {
   return (
     <>
       {exercises.map((exercise, idx) => (
@@ -21,7 +21,10 @@ export default function ExerciseList<T extends Exercise & { sets: Set[] }>({
             <Box flex={1}>
               <Text variant="body" color="primary" numberOfLines={1}>
                 {exercise.sets
-                  .map(set => `${set.weight}x${set.reps}`)
+                  .map(
+                    set =>
+                      `${set.weight}${exercise.exerciseSessionWeightUnit} x ${set.reps}`
+                  )
                   .join(', ')}
               </Text>
             </Box>
