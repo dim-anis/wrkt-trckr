@@ -28,7 +28,13 @@ export const setSchema = z.object({
 
 export const exerciseSchema = z.object({
   exerciseName: z.string().min(1),
-  exerciseId: z.number().optional()
+  exerciseId: z.number().optional(),
+  isCompound: z
+    .union([z.literal(0), z.literal(1)])
+    .transform(val => val === 1)
+    .or(z.boolean()),
+  exerciseCategoryId: z.number(),
+  createdAt: z.string().optional()
 });
 
 export const exerciseSessionSchema = z.object({
