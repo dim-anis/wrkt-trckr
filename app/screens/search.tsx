@@ -273,7 +273,13 @@ export default function Search() {
             <Text color="primary" variant="header3">
               No exercises found
             </Text>
-            <Button label="Create exercise" paddingHorizontal="m" />
+            <Button
+              label="Create exercise"
+              paddingHorizontal="m"
+              onPress={() =>
+                router.navigate({ pathname: '/screens/createExercise' })
+              }
+            />
           </Box>
         ) : (
           <Box flex={1} gap={'s'}>

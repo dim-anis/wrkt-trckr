@@ -18,6 +18,7 @@ export default function Layout() {
       <Stack.Screen name="template" />
       <Stack.Screen name="exercises/index" />
       <Stack.Screen name="search" />
+      <Stack.Screen name="createExercise" />
       <Stack.Screen name="settings" />
       <Stack.Screen name="stats" />
     </Stack>
