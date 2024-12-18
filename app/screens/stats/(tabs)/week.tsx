@@ -38,6 +38,7 @@ import {
   filterTypeOptions,
   getChartConfigs
 } from './chartConfigs';
+import { UserSettings } from '@/types';
 const inter = require('../../../../assets/fonts/Inter-Regular.ttf');
 const interBold = require('../../../../assets/fonts/Inter-Bold.ttf');
 
@@ -71,6 +72,9 @@ export default function WeekTab() {
   const chartSubtitleColor = `rgba(${theme.colors.chartTitle}, 0.6)`;
 
   const { dateRangeFrom, dateRangeTo } = useLocalSearchParams<SearchParams>();
+  const [{ is_metric }, setUserSettings] = useState<
+    Pick<UserSettings, 'is_metric'>
+  >({ is_metric: 1 });
   const [workouts, setWorkouts] = useState<WorkoutSessionWithStats[]>([]);
   const [rawWorkouts, setRawWorkouts] = useState<
     (WorkoutSessionWithStats & { selectedExercisesString: string })[]
@@ -96,10 +100,17 @@ export default function WeekTab() {
   });
 
   const chartTitleYValue = useDerivedValue(() => {
+    const chartTitleUnit =
+      selectedChartType.value === 'volume'
+        ? is_metric
+          ? 'kg'
+          : 'lb'
+        : selectedChartType.unit;
+
     const formattedValue =
       state.y[selectedChartType.value].value.value.toLocaleString();
-    return `${formattedValue} ${selectedChartType.unit}`;
-  }, [state, selectedChartType.value]);
+    return `${formattedValue} ${chartTitleUnit}`;
+  }, [is_metric, state, selectedChartType.value]);
 
   const chartTitleXValue = useDerivedValue(() => {
     const date = new Date(state.x.value?.value);
@@ -110,6 +121,24 @@ export default function WeekTab() {
     });
     return `${formattedValue}`;
   }, [state]);
+
+  useEffect(() => {
+    const fetchUserSettings = async () => {
+      try {
+        const result = await db.getFirstAsync<Pick<UserSettings, 'is_metric'>>(
+          `SELECT is_metric from user_settings;`
+        );
+
+        if (result) {
+          setUserSettings(result);
+        }
+      } catch (error) {
+        console.log(error);
+      }
+    };
+
+    fetchUserSettings();
+  }, []);
 
   useFocusEffect(
     useCallback(() => {
@@ -146,7 +175,20 @@ export default function WeekTab() {
               calendar.day AS workoutStart,
               w.id AS workoutId,
               w.workout_name as workoutName,
-              COALESCE(SUM(s.weight * s.reps), 0) AS volume,
+          SUM(
+              CASE 
+                  WHEN es.weight_unit = 'lb' THEN 
+                      CASE 
+                          WHEN (SELECT is_metric FROM user_settings) = 1 THEN ROUND(s.weight / 2.20462 * 2, 0) / 2
+                          ELSE ROUND(s.weight * 2, 0) / 2 
+                      END
+                  ELSE 
+                      CASE 
+                          WHEN (SELECT is_metric FROM user_settings) = 0 THEN ROUND(s.weight * 2.20462 * 2, 0) / 2
+                          ELSE ROUND(s.weight * 2, 0) / 2
+                      END
+              END * s.reps
+              ) AS volume,
               COALESCE(ROUND(AVG(s.rpe),1), 0) AS avgRpe,
               COALESCE(COUNT(s.weight), 0) AS setCount,
               COALESCE((
@@ -164,6 +206,7 @@ export default function WeekTab() {
               workouts w ON DATE(w.start_time) = calendar.day
           LEFT JOIN
               sets s ON w.id = s.workout_id
+          JOIN exercise_session es ON s.exercise_session_id = es.id
           LEFT JOIN
               exercises ON s.exercise_id = exercises.id
           GROUP BY
@@ -250,7 +293,20 @@ export default function WeekTab() {
           SELECT
               calendar.day AS workoutStart,
               w.id AS workoutId,
-              COALESCE(SUM(s.weight * s.reps), 0) AS volume,
+          SUM(
+              CASE 
+                  WHEN es.weight_unit = 'lb' THEN 
+                      CASE 
+                          WHEN (SELECT is_metric FROM user_settings) = 1 THEN ROUND(s.weight / 2.20462 * 2, 0) / 2
+                          ELSE ROUND(s.weight * 2, 0) / 2 
+                      END
+                  ELSE 
+                      CASE 
+                          WHEN (SELECT is_metric FROM user_settings) = 0 THEN ROUND(s.weight * 2.20462 * 2, 0) / 2
+                          ELSE ROUND(s.weight * 2, 0) / 2
+                      END
+              END * s.reps
+              ) AS volume,
               COALESCE(ROUND(AVG(s.rpe),1), 0) AS avgRpe,
               COALESCE(COUNT(s.weight), 0) AS setCount
           FROM
@@ -259,6 +315,7 @@ export default function WeekTab() {
               workouts w ON DATE(w.start_time) = calendar.day
           LEFT JOIN
               sets s ON w.id = s.workout_id
+          JOIN exercise_session es ON s.exercise_session_id = es.id
           LEFT JOIN
               exercises ON s.exercise_id = exercises.id
           ${filterType.value === 'exercises' && filterValue ? filterClause : ''}
@@ -286,6 +343,7 @@ export default function WeekTab() {
               workoutId: null,
               workoutName: null,
               workoutStart: formattedDate,
+              workoutEnd: null,
               avgRpe: 0,
               setCount: 0,
               volume: 0
@@ -644,7 +702,7 @@ export default function WeekTab() {
                         <CardContent flexDirection="row" gap="s">
                           <Pressable onPress={presentVolumeInfoModal}>
                             <Badge
-                              label={`${formatNumber(volume)} kg`}
+                              label={`${formatNumber(volume)} ${is_metric ? 'kg' : 'lb'}`}
                               backgroundColor="secondary"
                               borderColor="secondary"
                               color="secondaryForeground"

@@ -17,10 +17,12 @@ import { addDays, endOfWeek, format, startOfWeek, subDays } from 'date-fns';
 import Badge from '@/components/Badge';
 import { Pressable, ScrollView } from 'react-native';
 import { Ionicons, FontAwesome6 } from '@expo/vector-icons';
-import { getDefaultDateRange, groupSetsByWorkout } from '@/lib/utils';
+import {
+  convertToLbs,
+  getDefaultDateRange,
+  groupSetsByWorkout
+} from '@/lib/utils';
 import { useDerivedValue } from 'react-native-reanimated';
-import { Modal, useModal } from '@/components/ui/Modal';
-import { BottomSheetView } from '@gorhom/bottom-sheet';
 import Button from '@/components/ui/Button';
 import { toDateId } from '@marceloterreiro/flash-calendar';
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
@@ -33,10 +35,12 @@ import { Workout } from './types';
 import {
   Exercise,
   ExerciseCategory,
+  ExerciseSession,
   Set,
   WorkoutSession
 } from '@/lib/zodSchemas';
 import WorkoutStatsCard from '@/components/WorkoutStatsCard';
+import { UserSettings } from '@/types';
 const inter = require('../../../../assets/fonts/Inter-Regular.ttf');
 const interBold = require('../../../../assets/fonts/Inter-Bold.ttf');
 
@@ -64,6 +68,9 @@ export default function DayTab() {
   const chartTitleColor = `rgb(${theme.colors.chartTitle})`;
   const chartSubtitleColor = `rgba(${theme.colors.chartTitle}, 0.6)`;
 
+  const [{ is_metric }, setUserSettings] = useState<
+    Pick<UserSettings, 'is_metric'>
+  >({ is_metric: 1 });
   const { dateRangeFrom, workoutIndex } = useLocalSearchParams<SearchParams>();
   const [dateRange, setDateRange] = useState<{ from: Date; to: Date }>(
     getDefaultDateRange('Day')
@@ -79,6 +86,24 @@ export default function DayTab() {
     chartGroupByOptions[0]
   );
 
+  useEffect(() => {
+    const fetchUserSettings = async () => {
+      try {
+        const result = await db.getFirstAsync<Pick<UserSettings, 'is_metric'>>(
+          `SELECT is_metric from user_settings;`
+        );
+
+        if (result) {
+          setUserSettings(result);
+        }
+      } catch (error) {
+        console.log(error);
+      }
+    };
+
+    fetchUserSettings();
+  }, []);
+
   useFocusEffect(
     useCallback(() => {
       if (dateRangeFrom) {
@@ -90,33 +115,11 @@ export default function DayTab() {
     }, [dateRangeFrom])
   );
 
-  useEffect(() => {
-    let isActive = true;
-
-    const fetchWorkouts = async () => {
-      try {
-        const workouts = await searchWorkouts();
-
-        if (workouts) {
-          setWorkouts(workouts);
-        }
-      } catch (error) {
-        console.log(error);
-      }
-    };
-
-    fetchWorkouts();
-
-    return () => {
-      isActive = false;
-    };
-  }, [dateRange]);
-
   function searchWorkouts(): Promise<Workout[]> {
     return new Promise(async (resolve, reject) => {
       try {
         const result = await db.getAllAsync<
-          WorkoutSession & Exercise & ExerciseCategory & Set
+          WorkoutSession & Exercise & ExerciseCategory & ExerciseSession & Set
         >(
           `
           WITH RECURSIVE calendar AS (
@@ -133,6 +136,9 @@ export default function DayTab() {
               w.workout_name as workoutName,
               e.name AS exerciseName,
               e.id AS exerciseId,
+              es.id AS exerciseSessionId,
+              es.notes AS exerciseSessionNotes,
+              es.weight_unit AS exerciseSessionWeightUnit,
               ec.name AS categoryName,
               ec.id AS categoryId,
               s.weight AS weight,
@@ -148,6 +154,8 @@ export default function DayTab() {
               exercises e ON s.exercise_id = e.id
           LEFT JOIN
               exercise_categories ec ON e.category_id = ec.id
+          LEFT JOIN
+              exercise_session es ON s.exercise_session_id = es.id
           GROUP BY
               calendar.day, s.id
           ORDER BY
@@ -178,9 +186,16 @@ export default function DayTab() {
   });
 
   const chartTitleYValue = useDerivedValue(() => {
+    const chartTitleUnit =
+      selectedChartType.value === 'volume'
+        ? is_metric
+          ? 'kg'
+          : 'lb'
+        : selectedChartType.unit;
+
     const formattedValue = state.y.y.value?.value?.toLocaleString();
-    return `${formattedValue} ${selectedChartType.unit}`;
-  }, [state, selectedChartType.value]);
+    return `${formattedValue} ${chartTitleUnit}`;
+  }, [is_metric, state, selectedChartType.value]);
 
   const chartTitleXValue = useDerivedValue(() => {
     const formattedValue = state.x.value?.value?.toLocaleString();
@@ -194,10 +209,6 @@ export default function DayTab() {
   if (selectedBar < 0) {
     selectedBar = 2;
   }
-
-  const { present: presentVolumeInfoModal, ref: presentVolumeInfoRef } =
-    useModal();
-  const { present: presentRpeInfoModal, ref: presentRpeInfoRef } = useModal();
 
   if (workouts.length === 0)
     return (
@@ -230,7 +241,12 @@ export default function DayTab() {
 
   const chartData = workouts[sameDayWorkoutIndex]?.[groupBy.value]?.map(v => ({
     x: 'categoryName' in v ? v.categoryName : v.exerciseName,
-    y: v.stats[selectedChartType.value]
+    y:
+      selectedChartType.value === 'volume'
+        ? is_metric === 1
+          ? v.stats[selectedChartType.value]
+          : convertToLbs(v.stats[selectedChartType.value])
+        : v.stats[selectedChartType.value]
   }));
 
   const { domain, domainPadding, formatXLabel, formatYLabel, tickValues } =
@@ -553,20 +569,13 @@ export default function DayTab() {
               <Box gap="m" flexDirection="column">
                 {workoutsWithoutPlaceholders.length > 0 ? (
                   workoutsWithoutPlaceholders.map(
-                    (
-                      { workoutStart, workoutStats, exercises, workoutName },
-                      idx
-                    ) => {
-                      workoutName = workoutName ?? `Workout #${idx + 1}`;
+                    ({ workoutName, ...workout }, idx) => {
                       return (
                         <WorkoutStatsCard
                           key={idx}
-                          {...{
-                            workoutName,
-                            workoutStart,
-                            exercises,
-                            workoutStats
-                          }}
+                          isMetric={Boolean(is_metric)}
+                          {...workout}
+                          workoutName={workoutName ?? `Workout #${idx + 1}`}
                         />
                       );
                     }
@@ -580,37 +589,6 @@ export default function DayTab() {
             </Box>
           </Box>
         </Box>
-        <Modal
-          ref={presentVolumeInfoRef}
-          title="Total Workout Volume"
-          enableDynamicSizing
-          snapPoints={[]}
-          backgroundStyle={{ backgroundColor: theme.colors.background }}
-        >
-          <BottomSheetView>
-            <Box padding="m" gap="m" flex={1}>
-              <Text color="primary" variant="body">
-                Shows total amount of weight lifted in a workout.
-              </Text>
-            </Box>
-          </BottomSheetView>
-        </Modal>
-        <Modal
-          ref={presentRpeInfoRef}
-          title="Average RPE (Rate of Perceived Exertion)"
-          enableDynamicSizing
-          snapPoints={[]}
-          backgroundStyle={{ backgroundColor: theme.colors.background }}
-        >
-          <BottomSheetView>
-            <Box padding="m" gap="m" flex={1}>
-              <Text color="primary" variant="body">
-                Shows perceive level exerted in a workout. Useful to plan
-                training.
-              </Text>
-            </Box>
-          </BottomSheetView>
-        </Modal>
       </Box>
     </ScrollView>
   );

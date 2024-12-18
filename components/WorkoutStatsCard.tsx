@@ -2,7 +2,7 @@ import { format, formatDuration, intervalToDuration } from 'date-fns';
 import { Box } from './ui/Box';
 import { Text } from './ui/Text';
 import Separator from './Separator';
-import { formatNumber, roundToNearestHalf } from '@/lib/utils';
+import { convertToLbs, formatNumber, roundToNearestHalf } from '@/lib/utils';
 import ExerciseList from './ExerciseList';
 import { Workout } from '@/app/screens/stats/(tabs)/types';
 
@@ -13,6 +13,15 @@ export default function WorkoutStatsCard({
   exercises,
   isMetric = true
 }: Omit<Workout, 'categories' | 'workoutId'> & { isMetric: boolean }) {
+  const totalVolumeFormatted =
+    workoutStats &&
+    formatNumber(
+      Number(
+        isMetric
+          ? workoutStats.volume
+          : convertToLbs(workoutStats.volume).toFixed(1)
+      )
+    );
   return (
     <Box>
       <Box
@@ -44,7 +53,7 @@ export default function WorkoutStatsCard({
                   Volume
                 </Text>
                 <Text color="primary" fontSize={20}>
-                  {`${formatNumber(Number(workoutStats.volume.toFixed(1)))} kg`}
+                  {`${totalVolumeFormatted} ${isMetric ? 'kg' : 'lb'}`}
                 </Text>
               </Box>
               <Separator
