@@ -78,7 +78,6 @@ export default function CreateTemplate() {
         );
       }
     });
-    console.log('transaction over');
 
     router.back();
   }
