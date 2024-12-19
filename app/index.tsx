@@ -13,7 +13,7 @@ import { useTheme } from '@shopify/restyle';
 import { addDays, format, isToday, subDays } from 'date-fns';
 import { Stack, router, useLocalSearchParams } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Keyboard, Pressable, ScrollView } from 'react-native';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -78,6 +78,8 @@ export default function MainScreen() {
   const [currentDate, setCurrentDate] = useState(workoutDateId || todayDateId);
   const [isLoading, setIsLoading] = useState(true);
 
+  const controllerRef = useRef<AbortController | null>(null);
+
   const {
     present: presentMore,
     dismiss: dismissMore,
@@ -107,6 +109,9 @@ export default function MainScreen() {
       let isActive = true;
 
       async function fetchSets() {
+        const controller = new AbortController();
+        controllerRef.current = controller;
+
         setIsLoading(true);
         const result = await db.getAllAsync<
           WorkoutSession & ExerciseSessionWithExercise & Set
@@ -274,6 +279,7 @@ export default function MainScreen() {
                 hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
                 onPress={() => {
                   setCurrentDate(subDays(currentDate, 1).toISOString());
+                  controllerRef.current?.abort();
                   setIsWorkoutSynched(true);
                 }}
               >
@@ -294,6 +300,7 @@ export default function MainScreen() {
                 hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
                 onPress={() => {
                   setCurrentDate(addDays(currentDate, 1).toISOString());
+                  controllerRef.current?.abort();
                   setIsWorkoutSynched(true);
                 }}
               >
