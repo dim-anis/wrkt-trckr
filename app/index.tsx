@@ -41,18 +41,18 @@ const menuItems: TMenuItem[] = [
     label: 'Body metrics',
     icon: 'body-outline'
   },
-  {
-    id: 'settings-share',
-    href: '/screens/settings',
-    label: 'Share workout',
-    icon: 'share-social-outline'
-  },
-  {
-    id: 'settings',
-    href: '/screens/settings',
-    label: 'Copy workout',
-    icon: 'documents-outline'
-  },
+  // {
+  //   id: 'settings-share',
+  //   href: '/screens/settings',
+  //   label: 'Share workout',
+  //   icon: 'share-social-outline'
+  // },
+  // {
+  //   id: 'settings',
+  //   href: '/screens/settings',
+  //   label: 'Copy workout',
+  //   icon: 'documents-outline'
+  // },
   {
     id: 'settings',
     href: '/screens/settings',
