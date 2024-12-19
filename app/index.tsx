@@ -26,6 +26,7 @@ import {
   workoutSchema
 } from '@/lib/zodSchemas';
 import WorkoutSessions from './WorkoutSessions';
+import Skeleton from '@/components/ui/Skeleton';
 
 const menuItems: TMenuItem[] = [
   {
@@ -75,6 +76,7 @@ export default function MainScreen() {
 
   const [isWorkoutSynched, setIsWorkoutSynched] = useState(true);
   const [currentDate, setCurrentDate] = useState(workoutDateId || todayDateId);
+  const [isLoading, setIsLoading] = useState(true);
 
   const {
     present: presentMore,
@@ -105,6 +107,7 @@ export default function MainScreen() {
       let isActive = true;
 
       async function fetchSets() {
+        setIsLoading(true);
         const result = await db.getAllAsync<
           WorkoutSession & ExerciseSessionWithExercise & Set
         >(
@@ -146,6 +149,8 @@ export default function MainScreen() {
         );
 
         reset({ workouts: groupWorkoutSessions(result) });
+
+        setIsLoading(false);
       }
 
       fetchSets();
@@ -353,6 +358,9 @@ export default function MainScreen() {
           onAddSet={() => setIsWorkoutSynched(false)}
           onRemoveSet={() => setIsWorkoutSynched(true)}
         />
+        {isLoading ? (
+          <WorkoutSessionSkeleton />
+        ) : (
       </ScrollView>
 
       {workoutSessions.length > 0 ? (
@@ -499,6 +507,163 @@ export default function MainScreen() {
           </Box>
         </BottomSheetView>
       </Modal>
+
+function WorkoutSessionSkeleton() {
+  return (
+    <Box padding="m" gap="xl">
+      <Box gap="m">
+        <Box gap="m">
+          <Skeleton style={{ height: 40 }} />
+          <Box gap="m">
+            <Skeleton style={{ height: 20 }} />
+            <Skeleton style={{ height: 40 }} />
+          </Box>
+        </Box>
+        <Box gap="m">
+          <Box gap="s" flexDirection="row">
+            <Skeleton style={{ height: 40, width: 40, flex: 1 }} />
+            <Skeleton style={{ height: 40, flex: 2 }} />
+            <Skeleton style={{ height: 40, flex: 2 }} />
+            <Skeleton style={{ height: 40, flex: 2 }} />
+            <Skeleton
+              style={{
+                height: 40,
+                width: 40,
+                flex: 1
+              }}
+            />
+          </Box>
+          <Box gap="s" flexDirection="row">
+            <Skeleton style={{ height: 40, width: 40, flex: 1 }} />
+            <Skeleton style={{ height: 40, flex: 2 }} />
+            <Skeleton style={{ height: 40, flex: 2 }} />
+            <Skeleton style={{ height: 40, flex: 2 }} />
+            <Skeleton
+              style={{
+                height: 40,
+                width: 40,
+                flex: 1
+              }}
+            />
+          </Box>
+          <Box gap="s" flexDirection="row">
+            <Skeleton style={{ height: 40, width: 40, flex: 1 }} />
+            <Skeleton style={{ height: 40, flex: 2 }} />
+            <Skeleton style={{ height: 40, flex: 2 }} />
+            <Skeleton style={{ height: 40, flex: 2 }} />
+            <Skeleton
+              style={{
+                height: 40,
+                width: 40,
+                flex: 1
+              }}
+            />
+          </Box>
+        </Box>
+        <Skeleton style={{ height: 40 }} />
+      </Box>
+      <Box gap="m">
+        <Box gap="m">
+          <Skeleton style={{ height: 40 }} />
+          <Box gap="m">
+            <Skeleton style={{ height: 20 }} />
+            <Skeleton style={{ height: 40 }} />
+          </Box>
+        </Box>
+        <Box gap="m">
+          <Box gap="s" flexDirection="row">
+            <Skeleton style={{ height: 40, width: 40, flex: 1 }} />
+            <Skeleton style={{ height: 40, flex: 2 }} />
+            <Skeleton style={{ height: 40, flex: 2 }} />
+            <Skeleton style={{ height: 40, flex: 2 }} />
+            <Skeleton
+              style={{
+                height: 40,
+                width: 40,
+                flex: 1
+              }}
+            />
+          </Box>
+          <Box gap="s" flexDirection="row">
+            <Skeleton style={{ height: 40, width: 40, flex: 1 }} />
+            <Skeleton style={{ height: 40, flex: 2 }} />
+            <Skeleton style={{ height: 40, flex: 2 }} />
+            <Skeleton style={{ height: 40, flex: 2 }} />
+            <Skeleton
+              style={{
+                height: 40,
+                width: 40,
+                flex: 1
+              }}
+            />
+          </Box>
+          <Box gap="s" flexDirection="row">
+            <Skeleton style={{ height: 40, width: 40, flex: 1 }} />
+            <Skeleton style={{ height: 40, flex: 2 }} />
+            <Skeleton style={{ height: 40, flex: 2 }} />
+            <Skeleton style={{ height: 40, flex: 2 }} />
+            <Skeleton
+              style={{
+                height: 40,
+                width: 40,
+                flex: 1
+              }}
+            />
+          </Box>
+        </Box>
+        <Skeleton style={{ height: 40 }} />
+      </Box>
+      <Box gap="m">
+        <Box gap="m">
+          <Skeleton style={{ height: 40 }} />
+          <Box gap="m">
+            <Skeleton style={{ height: 20 }} />
+            <Skeleton style={{ height: 40 }} />
+          </Box>
+        </Box>
+        <Box gap="m">
+          <Box gap="s" flexDirection="row">
+            <Skeleton style={{ height: 40, width: 40, flex: 1 }} />
+            <Skeleton style={{ height: 40, flex: 2 }} />
+            <Skeleton style={{ height: 40, flex: 2 }} />
+            <Skeleton style={{ height: 40, flex: 2 }} />
+            <Skeleton
+              style={{
+                height: 40,
+                width: 40,
+                flex: 1
+              }}
+            />
+          </Box>
+          <Box gap="s" flexDirection="row">
+            <Skeleton style={{ height: 40, width: 40, flex: 1 }} />
+            <Skeleton style={{ height: 40, flex: 2 }} />
+            <Skeleton style={{ height: 40, flex: 2 }} />
+            <Skeleton style={{ height: 40, flex: 2 }} />
+            <Skeleton
+              style={{
+                height: 40,
+                width: 40,
+                flex: 1
+              }}
+            />
+          </Box>
+          <Box gap="s" flexDirection="row">
+            <Skeleton style={{ height: 40, width: 40, flex: 1 }} />
+            <Skeleton style={{ height: 40, flex: 2 }} />
+            <Skeleton style={{ height: 40, flex: 2 }} />
+            <Skeleton style={{ height: 40, flex: 2 }} />
+            <Skeleton
+              style={{
+                height: 40,
+                width: 40,
+                flex: 1
+              }}
+            />
+          </Box>
+        </Box>
+        <Skeleton style={{ height: 40 }} />
+      </Box>
     </Box>
   );
 }
