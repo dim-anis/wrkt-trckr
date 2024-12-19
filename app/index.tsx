@@ -259,6 +259,22 @@ export default function MainScreen() {
     }
   }
 
+  function handleSelectPreviousDay() {
+    setCurrentDate(subDays(currentDate, 1).toISOString());
+    setIsWorkoutSynched(true);
+    if (controllerRef.current) {
+      controllerRef.current.abort();
+    }
+  }
+
+  function handleSelectNextDay() {
+    setCurrentDate(addDays(currentDate, 1).toISOString());
+    setIsWorkoutSynched(true);
+    if (controllerRef.current) {
+      controllerRef.current.abort();
+    }
+  }
+
   return (
     <>
       <Stack.Screen
@@ -277,11 +293,7 @@ export default function MainScreen() {
             >
               <Pressable
                 hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
-                onPress={() => {
-                  setCurrentDate(subDays(currentDate, 1).toISOString());
-                  controllerRef.current?.abort();
-                  setIsWorkoutSynched(true);
-                }}
+                onPress={handleSelectPreviousDay}
               >
                 <Ionicons
                   name="chevron-back"
@@ -298,11 +310,7 @@ export default function MainScreen() {
               </Pressable>
               <Pressable
                 hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
-                onPress={() => {
-                  setCurrentDate(addDays(currentDate, 1).toISOString());
-                  controllerRef.current?.abort();
-                  setIsWorkoutSynched(true);
-                }}
+                onPress={handleSelectNextDay}
               >
                 <Ionicons
                   name="chevron-forward"
