@@ -86,7 +86,7 @@ export default function CreateTemplate() {
     return new Promise(async (resolve, reject) => {
       try {
         const exercises = await db.getAllAsync<Exercise>(
-          `SELECT exercises.id AS exerciseId, exercises.name AS exerciseName, exercises.category_id AS exerciseCategoryId
+          `SELECT exercises.id AS exerciseId, exercises.name AS exerciseName, exercises.is_compound AS isCompound, exercises.category_id AS exerciseCategoryId
            FROM exercises 
            JOIN exercise_categories ec ON exerciseCategoryId = ec.id
            ${searchTerm ? `WHERE exerciseName LIKE ? OR ec.name LIKE ?` : ''}`,
