@@ -15,7 +15,12 @@ import { Stack, router, useLocalSearchParams } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { Keyboard, Pressable, ScrollView } from 'react-native';
+import {
+  ActivityIndicator,
+  Keyboard,
+  Pressable,
+  ScrollView
+} from 'react-native';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
   WorkoutSession,
@@ -359,6 +364,9 @@ export default function MainScreen() {
         style={{ backgroundColor: theme.colors.background }}
       >
         {isLoading ? (
+          <Box flex={1} justifyContent="center" alignItems="center">
+            <ActivityIndicator color={theme.colors.primary} size="large" />
+          </Box>
         ) : (
           <Box flex={1} justifyContent="center" padding="m">
             {workoutSessions.length === 0 ? (
