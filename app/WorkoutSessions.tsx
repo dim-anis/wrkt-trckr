@@ -104,16 +104,6 @@ const WorkoutSessions = ({
     }
   }
 
-  if (workoutSessions.length === 0) {
-    return (
-      <Box flex={1} justifyContent="center" alignItems="center">
-        <Text color="primary" variant="header3">
-          No workouts recorded
-        </Text>
-      </Box>
-    );
-  }
-
   return (
     <Box gap="xl">
       {workoutSessions.map((workout, workoutSessionIndex) => {
