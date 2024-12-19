@@ -1,14 +1,13 @@
 import MenuItem from '@/components/MenuItem';
 import { useFocusEffect } from 'expo-router';
 import { Box } from '@/components/ui/Box';
-import Link from '@/components/ui/Link';
 import { Modal, useModal } from '@/components/ui/Modal';
 import { Text } from '@/components/ui/Text';
 import { Theme } from '@/lib/theme';
 import { toDateId } from '@marceloterreiro/flash-calendar';
 import { groupWorkoutSessions, showToast } from '@/lib/utils';
 import { type TMenuItem } from '@/types';
-import { Ionicons } from '@expo/vector-icons';
+import { FontAwesome6, Ionicons } from '@expo/vector-icons';
 import { BottomSheetView } from '@gorhom/bottom-sheet';
 import { useTheme } from '@shopify/restyle';
 import { addDays, format, isToday, subDays } from 'date-fns';
@@ -26,6 +25,7 @@ import {
   workoutSchema
 } from '@/lib/zodSchemas';
 import WorkoutSessions from './WorkoutSessions';
+import Button from '@/components/ui/Button';
 import Skeleton from '@/components/ui/Skeleton';
 
 const menuItems: TMenuItem[] = [
@@ -255,7 +255,7 @@ export default function MainScreen() {
   }
 
   return (
-    <Box bg="background" flex={1} justifyContent="center" padding="m" gap="l">
+    <>
       <Stack.Screen
         options={{
           title: '',
@@ -337,7 +337,6 @@ export default function MainScreen() {
           )
         }}
       />
-
       <ScrollView
         keyboardShouldPersistTaps="handled"
         contentContainerStyle={{
@@ -345,90 +344,91 @@ export default function MainScreen() {
         }}
         style={{ backgroundColor: theme.colors.background }}
       >
-        <WorkoutSessions
-          {...{
-            control,
-            watch,
-            reset,
-            setFocus,
-            getValues,
-            setValue
-          }}
-          onRemoveWorkoutSession={() => setIsWorkoutSynched(true)}
-          onAddSet={() => setIsWorkoutSynched(false)}
-          onRemoveSet={() => setIsWorkoutSynched(true)}
-        />
         {isLoading ? (
           <WorkoutSessionSkeleton />
         ) : (
+          <Box flex={1} justifyContent="center" padding="m">
+            {workoutSessions.length === 0 ? (
+              <Box justifyContent="center" alignItems="center" gap="xl">
+                <Text color="primary" variant="header3">
+                  No workouts recorded
+                </Text>
+                <Box gap="s" flexDirection="row">
+                  <Box flex={1}>
+                    <Button
+                      label="Start workout"
+                      onPress={() =>
+                        router.navigate({
+                          pathname: '/screens/search',
+                          params: {
+                            workoutDate: currentDate
+                          }
+                        })
+                      }
+                    />
+                  </Box>
+                  <Box flex={1}>
+                    <Button
+                      variant="secondary"
+                      label="Use template"
+                      onPress={() =>
+                        router.navigate({
+                          pathname: '/screens/template',
+                          params: { workoutDate: currentDate }
+                        })
+                      }
+                    />
+                  </Box>
+                </Box>
+              </Box>
+            ) : (
+              <WorkoutSessions
+                {...{
+                  control,
+                  watch,
+                  reset,
+                  setFocus,
+                  getValues,
+                  setValue
+                }}
+                onRemoveWorkoutSession={() => setIsWorkoutSynched(true)}
+                onAddSet={() => setIsWorkoutSynched(false)}
+                onRemoveSet={() => setIsWorkoutSynched(true)}
+              />
+            )}
+          </Box>
+        )}
       </ScrollView>
 
-      {workoutSessions.length > 0 ? (
-        <Box
+      {workoutSessions.length > 0 && (
+        <Button
           position="absolute"
           aspectRatio={'1/1'}
           width={48}
+          height={48}
           right={24}
           bottom={48}
           shadowOffset={{ width: 0, height: 2 }}
           shadowOpacity={0.25}
           shadowRadius={3.84}
+          shadowColor="background"
           elevation={5}
-          style={{ shadowColor: '#000' }}
-        >
-          <Link
-            href={{
+          icon={
+            <FontAwesome6
+              name="plus"
+              size={20}
+              color={theme.colors.primaryForeground}
+            />
+          }
+          onPress={() =>
+            router.navigate({
               pathname: '/screens/search',
               params: {
                 workoutDate: currentDate
               }
-            }}
-            flexGrow={1}
-            asChild
-          >
-            <Pressable>
-              <Ionicons
-                name="add-outline"
-                size={28}
-                color={theme.colors.primaryForeground}
-              />
-            </Pressable>
-          </Link>
-        </Box>
-      ) : (
-        <Box flexDirection="row" gap="m">
-          <Link
-            href={{
-              pathname: '/screens/search',
-              params: {
-                workoutDate: currentDate
-              }
-            }}
-            flexGrow={1}
-            asChild
-          >
-            <Pressable>
-              <Text variant="buttonLabel" color="primaryForeground">
-                Start workout
-              </Text>
-            </Pressable>
-          </Link>
-          <Link
-            href={{
-              pathname: '/screens/template',
-              params: { workoutDate: currentDate }
-            }}
-            flexGrow={1}
-            variant="secondary"
-            asChild
-          >
-            <Pressable>
-              <Text variant="buttonLabel" color="secondaryForeground">
-                Use template
-              </Text>
-            </Pressable>
-          </Link>
-        </Box>
+            })
+          }
+        />
       )}
 
       <Modal
@@ -507,6 +507,9 @@ export default function MainScreen() {
           </Box>
         </BottomSheetView>
       </Modal>
+    </>
+  );
+}
 
 function WorkoutSessionSkeleton() {
   return (
