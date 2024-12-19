@@ -368,38 +368,39 @@ export default function MainScreen() {
             <ActivityIndicator color={theme.colors.primary} size="large" />
           </Box>
         ) : (
-          <Box flex={1} justifyContent="center" padding="m">
+          <Box flex={1} padding="m">
             {workoutSessions.length === 0 ? (
-              <Box justifyContent="center" alignItems="center" gap="xl">
+              <Box
+                justifyContent="center"
+                alignItems="center"
+                gap="xl"
+                flex={1}
+              >
                 <Text color="primary" variant="header3">
                   No workouts recorded
                 </Text>
-                <Box gap="s" flexDirection="row">
-                  <Box flex={1}>
-                    <Button
-                      label="Start workout"
-                      onPress={() =>
-                        router.navigate({
-                          pathname: '/screens/search',
-                          params: {
-                            workoutDate: currentDate
-                          }
-                        })
-                      }
-                    />
-                  </Box>
-                  <Box flex={1}>
-                    <Button
-                      variant="secondary"
-                      label="Use template"
-                      onPress={() =>
-                        router.navigate({
-                          pathname: '/screens/template',
-                          params: { workoutDate: currentDate }
-                        })
-                      }
-                    />
-                  </Box>
+                <Box gap="s" flexDirection="column" width={'75%'}>
+                  <Button
+                    label="Start workout"
+                    onPress={() =>
+                      router.navigate({
+                        pathname: '/screens/search',
+                        params: {
+                          workoutDate: currentDate
+                        }
+                      })
+                    }
+                  />
+                  <Button
+                    variant="secondary"
+                    label="Use template"
+                    onPress={() =>
+                      router.navigate({
+                        pathname: '/screens/template',
+                        params: { workoutDate: currentDate }
+                      })
+                    }
+                  />
                 </Box>
               </Box>
             ) : (
