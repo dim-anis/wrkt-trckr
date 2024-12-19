@@ -118,7 +118,7 @@ export interface SelectProps {
   disabled?: boolean;
   error?: string;
   options?: OptionItem[];
-  onSelect?: (value: string | number) => void;
+  onSelect?: (value: string | number | boolean) => void;
   placeholder?: string;
   optionsTitle?: string;
 }
@@ -232,7 +232,7 @@ export function ControlledSelect<T extends FieldValues>(
 
   const { field, fieldState } = useController({ control, name });
   const onSelect = React.useCallback(
-    (value: string | number) => {
+    (value: string | number | boolean) => {
       field.onChange(value);
       onRNSelect?.(value);
     },
