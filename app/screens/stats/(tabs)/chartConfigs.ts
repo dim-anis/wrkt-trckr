@@ -65,7 +65,7 @@ export const chartOptions = [
   {
     label: 'Volume',
     value: 'volume',
-    unit: 'kgs',
+    unit: 'kg',
     iconName: 'chart-simple'
   },
   { label: 'Sets', value: 'setCount', unit: 'sets', iconName: 'repeat' },
