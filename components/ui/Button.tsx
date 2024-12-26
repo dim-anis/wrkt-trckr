@@ -47,21 +47,18 @@ type ButtonProps = RestyleProps & {
   icon?: ReactElement;
   onPress?: () => void;
   disabled?: boolean;
-  style?: StyleProp<ViewStyle>;
 };
 
 export default function Button({
   onPress,
   label,
   icon,
-  style,
   disabled = false,
   ...rest
 }: ButtonProps) {
   const props = useRestyle(restyleFunctions, rest);
 
   return (
-    <Pressable onPress={onPress} style={style} disabled={disabled}>
       <Box
         gap="m"
         flexDirection="row"
