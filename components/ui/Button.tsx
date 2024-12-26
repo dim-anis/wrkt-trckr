@@ -15,6 +15,8 @@ import {
   composeRestyleFunctions,
   layout,
   LayoutProps
+  PositionProps,
+  ShadowProps
 } from '@shopify/restyle';
 import { Pressable, StyleProp, ViewStyle } from 'react-native';
 import { Box } from './Box';
@@ -24,6 +26,8 @@ type RestyleProps = SpacingProps<Theme> &
   ColorProps<Theme> &
   BorderProps<Theme> &
   LayoutProps<Theme> &
+  PositionProps<Theme> &
+  ShadowProps<Theme> &
   BackgroundColorProps<Theme> &
   VariantProps<Theme, 'buttonVariants'>;
 
