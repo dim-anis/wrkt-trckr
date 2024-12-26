@@ -14,11 +14,11 @@ import {
   SpacingProps,
   composeRestyleFunctions,
   layout,
-  LayoutProps
+  LayoutProps,
   PositionProps,
   ShadowProps
 } from '@shopify/restyle';
-import { Pressable, StyleProp, ViewStyle } from 'react-native';
+import { Pressable } from 'react-native';
 import { Box } from './Box';
 import { ReactElement } from 'react';
 
@@ -59,12 +59,12 @@ export default function Button({
   const props = useRestyle(restyleFunctions, rest);
 
   return (
+    <Pressable onPress={onPress} disabled={disabled} {...props}>
       <Box
         gap="m"
         flexDirection="row"
         opacity={disabled ? 0.5 : undefined}
         pointerEvents={disabled ? 'none' : 'auto'}
-        {...props}
       >
         <Box flexDirection="row" alignItems="center" gap="s">
           {icon && icon}
