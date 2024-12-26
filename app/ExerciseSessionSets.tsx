@@ -32,6 +32,12 @@ type ExerciseSessionSetsProps = {
   onRemoveWorkoutSession: (workoutSessionIndex: number) => void;
 };
 
+const weightUnitOptions = [
+  { label: 'kg', value: 'kg' },
+  { label: 'lb', value: 'lb' }
+  // { label: 'bw', value: 'bw' }
+];
+
 export default function ExerciseSessionSets({
   control,
   watch,
@@ -171,11 +177,7 @@ export default function ExerciseSessionSets({
                       }
                       placeholder="Select weight unit..."
                       optionsTitle="Weight Input"
-                      options={[
-                        { label: 'kg', value: 'kg' },
-                        { label: 'lb', value: 'lb' },
-                        { label: 'bw', value: 'bw' }
-                      ]}
+                      options={weightUnitOptions}
                     >
                       <Box
                         flexDirection="row"
