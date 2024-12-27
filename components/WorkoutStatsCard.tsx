@@ -4,7 +4,7 @@ import { Text } from './ui/Text';
 import Separator from './Separator';
 import { convertToLbs, formatNumber, roundToNearestHalf } from '@/lib/utils';
 import ExerciseList from './ExerciseList';
-import { Workout } from '@/app/screens/stats/(tabs)/types';
+import { Workout } from '@/app/stats/(tabs)/types';
 
 export default function WorkoutStatsCard({
   workoutName,

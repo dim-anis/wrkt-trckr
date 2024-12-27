@@ -11,7 +11,7 @@ import {
   ExerciseSession
 } from './zodSchemas';
 import { addDays, endOfWeek, startOfWeek, subDays } from 'date-fns';
-import { Workout } from '@/app/screens/stats/(tabs)/types';
+import { Workout } from '@/app/stats/(tabs)/types';
 import { Workout as ZodWorkout } from './zodSchemas';
 
 export type ValueOf<T> = T[keyof T];
