@@ -3,19 +3,17 @@ import Button from '@/components/ui/Button';
 import { ControlledInput } from '@/components/ui/Input';
 import { Theme } from '@/lib/theme';
 import { ExerciseCategory, exerciseCategorySchema } from '@/lib/zodSchemas';
-import { Ionicons } from '@expo/vector-icons';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useTheme } from '@shopify/restyle';
 import { Stack, router } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
 import { useForm } from 'react-hook-form';
-import { Pressable } from 'react-native';
 
 export default function CreateCategory() {
   const theme = useTheme<Theme>();
   const db = useSQLiteContext();
 
-  const { control, handleSubmit } = useForm<ExerciseCategory>({
+  const { control, handleSubmit, setError } = useForm<ExerciseCategory>({
     resolver: zodResolver(exerciseCategorySchema),
     defaultValues: {}
   });
@@ -30,13 +28,24 @@ export default function CreateCategory() {
     }
 
     const { categoryName } = data;
+    try {
+      const res = await db.runAsync(
+        `INSERT INTO exercise_categories (name) VALUES (?)`,
+        categoryName
+      );
 
-    await db.runAsync(
-      `INSERT INTO exercise_categories (name) VALUES (?)`,
-      categoryName
-    );
-
-    router.back();
+      if (res.changes) {
+        router.back();
+      }
+    } catch (e) {
+      if (e instanceof Error) {
+        if (e.message.includes('UNIQUE constraint failed')) {
+          setError('categoryName', {
+            message: 'A category with this name already exists'
+          });
+        }
+      }
+    }
   }
 
   return (

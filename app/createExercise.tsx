@@ -20,7 +20,7 @@ export default function CreateExercise() {
   const theme = useTheme<Theme>();
   const db = useSQLiteContext();
 
-  const { control, reset, handleSubmit } = useForm<Exercise>({
+  const { control, reset, handleSubmit, setError } = useForm<Exercise>({
     resolver: zodResolver(exerciseSchema),
     defaultValues: {}
   });
@@ -69,14 +69,26 @@ export default function CreateExercise() {
 
     const { exerciseName, exerciseCategoryId, isCompound } = data;
 
-    await db.runAsync(
-      `INSERT INTO exercises (name, category_id, is_compound) VALUES (?, ?, ?);`,
-      exerciseName,
-      exerciseCategoryId,
-      isCompound ? 1 : 0
-    );
+    try {
+      const res = await db.runAsync(
+        `INSERT INTO exercises (name, category_id, is_compound) VALUES (?, ?, ?);`,
+        exerciseName,
+        exerciseCategoryId,
+        isCompound ? 1 : 0
+      );
 
-    router.back();
+      if (res.changes) {
+        router.back();
+      }
+    } catch (e) {
+      if (e instanceof Error) {
+        if (e.message.includes('UNIQUE constraint failed')) {
+          setError('exerciseName', {
+            message: 'An exercise with this name already exists'
+          });
+        }
+      }
+    }
   }
 
   const exerciseTypeInfo = useModal();

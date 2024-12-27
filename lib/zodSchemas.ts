@@ -6,16 +6,30 @@ export const setSchema = z.object({
   createdAt: z.string(),
   weight: z.preprocess(
     val => (val === '' ? null : val),
-    z.coerce.number().positive().min(0.5).nullable()
+    z.coerce
+      .number()
+      .positive()
+      .min(1, { message: 'Weight must be at least 1' })
+    // z.coerce.number().positive().min(0.5).nullable()
   ),
   reps: z.preprocess(
     val => (val === '' ? undefined : val),
-    z.coerce.number().int().positive().min(1)
+    z.coerce
+      .number()
+      .int()
+      .positive()
+      .min(1, { message: 'Reps must be at least 1' })
   ),
   rpe: z
     .preprocess(
       val => (val === '' ? null : val),
-      z.union([z.coerce.number().min(5).max(10), z.null()])
+      z.union([
+        z.coerce
+          .number()
+          .min(5, { message: 'RPE must be between 5 and 10' })
+          .max(10, { message: 'RPE must be between 5 and 10' }),
+        z.null()
+      ])
     )
     .default(null),
   addedResistance: z
@@ -27,13 +41,17 @@ export const setSchema = z.object({
 });
 
 export const exerciseSchema = z.object({
-  exerciseName: z.string().min(1),
+  exerciseName: z
+    .string()
+    .trim()
+    .min(1, { message: 'Exercise name is required' }),
   exerciseId: z.number().optional(),
   isCompound: z
     .union([z.literal(0), z.literal(1)])
     .transform(val => val === 1)
-    .or(z.boolean()),
-  exerciseCategoryId: z.number(),
+    .or(z.boolean())
+    .optional(),
+  exerciseCategoryId: z.number().optional(),
   createdAt: z.string().optional()
 });
 
@@ -49,7 +67,10 @@ export const exerciseSessionWithExercise =
   exerciseSessionSchema.merge(exerciseSchema);
 
 export const exerciseCategorySchema = z.object({
-  categoryName: z.string().min(1),
+  categoryName: z
+    .string()
+    .trim()
+    .min(1, { message: 'Category name is required' }),
   categoryId: z.number().optional()
 });
 
@@ -110,7 +131,7 @@ export type WeighIn = z.infer<typeof weighInSchema>;
 
 export const templateSchema = z.object({
   id: z.number().optional(),
-  name: z.string().min(1, { message: 'Template name is required' }),
+  name: z.string().trim().min(1, { message: 'Template name is required' }),
   selectedExercises: z
     .array(exerciseSchema.extend({ setCount: z.number().default(1) }))
     .min(1, { message: 'Select at least 1 exercise' })

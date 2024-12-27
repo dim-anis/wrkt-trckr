@@ -25,7 +25,8 @@ export default function CreateTemplate() {
   const {
     control,
     handleSubmit,
-    formState: { errors }
+    formState: { errors },
+    setError
   } = useForm<Template>({
     resolver: zodResolver(templateSchema),
     defaultValues: {
@@ -63,21 +64,31 @@ export default function CreateTemplate() {
 
     const { name, selectedExercises } = data;
 
-    await db.withTransactionAsync(async () => {
-      const { lastInsertRowId: templateId } = await db.runAsync(
-        `INSERT INTO templates (name) VALUES (?);`,
-        name
-      );
-
-      for (const { exerciseId, setCount } of selectedExercises) {
-        await db.runAsync(
-          `INSERT INTO template_exercises (template_id, exercise_id, set_count) VALUES (?, ?, ?);`,
-          templateId,
-          exerciseId!,
-          setCount
+    try {
+      await db.withTransactionAsync(async () => {
+        const { lastInsertRowId: templateId } = await db.runAsync(
+          `INSERT INTO templates (name) VALUES (?);`,
+          name
         );
+
+        for (const { exerciseId, setCount } of selectedExercises) {
+          await db.runAsync(
+            `INSERT INTO template_exercises (template_id, exercise_id, set_count) VALUES (?, ?, ?);`,
+            templateId,
+            exerciseId!,
+            setCount
+          );
+        }
+      });
+    } catch (e) {
+      if (e instanceof Error) {
+        if (e.message.includes('UNIQUE constraint failed')) {
+          setError('name', {
+            message: 'A template with this name already exists'
+          });
+        }
       }
-    });
+    }
 
     router.back();
   }
