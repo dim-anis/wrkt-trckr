@@ -216,7 +216,7 @@ const WorkoutSessions = ({
                   workoutSessionModal.dismiss();
 
                   router.push({
-                    pathname: '/screens/stats/(tabs)/day',
+                    pathname: '/stats/(tabs)/day',
                     params: {
                       dateRangeFrom: workoutStart,
                       workoutIndex: workoutSessionIndex
