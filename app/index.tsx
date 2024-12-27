@@ -29,19 +29,19 @@ import {
   Workout,
   workoutSchema
 } from '@/lib/zodSchemas';
-import WorkoutSessions from './WorkoutSessions';
+import WorkoutSessions from '../components/WorkoutSessions';
 import Button from '@/components/ui/Button';
 
 const menuItems: TMenuItem[] = [
   {
     id: 'settings-statistics',
-    href: '/screens/stats',
+    href: '/stats',
     label: 'Statistics',
     icon: 'stats-chart-outline'
   },
   {
     id: 'settings-tracker',
-    href: '/screens/settings/bodyMetrics',
+    href: '/settings/bodyMetrics',
     label: 'Body metrics',
     icon: 'body-outline'
   },
@@ -59,7 +59,7 @@ const menuItems: TMenuItem[] = [
   // },
   {
     id: 'settings',
-    href: '/screens/settings',
+    href: '/settings',
     label: 'Settings',
     icon: 'settings-outline'
   }
@@ -384,7 +384,7 @@ export default function MainScreen() {
                     label="Start workout"
                     onPress={() =>
                       router.navigate({
-                        pathname: '/screens/search',
+                        pathname: '/search',
                         params: {
                           workoutDate: currentDate
                         }
@@ -396,7 +396,7 @@ export default function MainScreen() {
                     label="Use template"
                     onPress={() =>
                       router.navigate({
-                        pathname: '/screens/template',
+                        pathname: '/template',
                         params: { workoutDate: currentDate }
                       })
                     }
@@ -442,14 +442,14 @@ export default function MainScreen() {
               color={theme.colors.primaryForeground}
             />
           }
-          onPress={() =>
+          onPress={() => {
             router.navigate({
-              pathname: '/screens/search',
+              pathname: '/search',
               params: {
                 workoutDate: currentDate
               }
-            })
-          }
+            });
+          }}
         />
       )}
 
@@ -487,7 +487,7 @@ export default function MainScreen() {
               onPress={() => {
                 dismissMore();
                 router.navigate({
-                  pathname: '/screens/template',
+                  pathname: '/template',
                   params: { workoutDate: currentDate }
                 });
               }}

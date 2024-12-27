@@ -26,8 +26,8 @@ import {
 import { useDerivedValue } from 'react-native-reanimated';
 import { showToast } from '@/lib/utils';
 import MenuItem from '@/components/MenuItem';
-const inter = require('../../../assets/fonts/Inter-Regular.ttf');
-const interBold = require('../../../assets/fonts/Inter-Bold.ttf');
+const inter = require('../../assets/fonts/Inter-Regular.ttf');
+const interBold = require('../../assets/fonts/Inter-Bold.ttf');
 
 export default function BodyMetricsPage() {
   const theme = useTheme<Theme>();

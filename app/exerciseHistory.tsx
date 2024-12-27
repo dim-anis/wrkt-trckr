@@ -185,7 +185,7 @@ export default function ExerciseSetsView() {
                         variant="outline"
                         onPress={() => {
                           router.push({
-                            pathname: `/screens/selected-exercise`,
+                            pathname: `/selected-exercise`,
                             params: {
                               exerciseId: sets[0].exercise_id,
                               exerciseName,

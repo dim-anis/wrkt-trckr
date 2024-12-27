@@ -121,13 +121,13 @@ export default function CreateTemplate() {
               alignItems="center"
               gap="m"
             >
-              <Box hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}>
-                <Ionicons
-                  name="ellipsis-vertical"
-                  size={20}
-                  color={theme.colors.primary}
-                />
-              </Box>
+              {/* <Pressable hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}> */}
+              {/*   <Ionicons */}
+              {/*     name="ellipsis-vertical" */}
+              {/*     size={20} */}
+              {/*     color={theme.colors.primary} */}
+              {/*   /> */}
+              {/* </Pressable> */}
             </Box>
           )
         }}

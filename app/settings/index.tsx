@@ -20,7 +20,7 @@ const settingsMenu: TMenuItem[] = [
       {
         id: 'body-metrics',
         label: 'Body metrics',
-        href: '/screens/settings/bodyMetrics',
+        href: '/settings/bodyMetrics',
         icon: 'body-outline'
       }
       // {
@@ -50,13 +50,13 @@ const settingsMenu: TMenuItem[] = [
       {
         id: 'export',
         label: 'Export',
-        href: '/screens/settings/exportData',
+        href: '/settings/exportData',
         icon: 'cloud-upload-outline'
       },
       {
         id: 'import',
         label: 'Import',
-        href: '/screens/settings/importData',
+        href: '/settings/importData',
         icon: 'download-outline'
       }
     ]

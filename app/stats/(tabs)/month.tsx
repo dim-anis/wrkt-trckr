@@ -1,36 +1,34 @@
 import Badge from '@/components/Badge';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader
-} from '@/components/Card';
-import { Circle, Group, Text as SkiaText } from '@shopify/react-native-skia';
+import { Card, CardHeader, CardContent } from '@/components/Card';
 import { Box } from '@/components/ui/Box';
 import Button from '@/components/ui/Button';
-import { Modal, useModal } from '@/components/ui/Modal';
+import { Modal } from '@/components/ui/Modal';
 import { Text } from '@/components/ui/Text';
-import { Theme } from '@/lib/theme';
-import { formatNumber, getDefaultDateRange } from '@/lib/utils';
-import { WorkoutSession } from '@/lib/zodSchemas';
+import {
+  Circle,
+  Group,
+  Text as SkiaText,
+  useFont
+} from '@shopify/react-native-skia';
+import {
+  formatNumber,
+  getDefaultDateRange,
+  getFourWeekRange
+} from '@/lib/utils';
 import { FontAwesome6, Ionicons } from '@expo/vector-icons';
 import { BottomSheetView } from '@gorhom/bottom-sheet';
-import { toDateId } from '@marceloterreiro/flash-calendar';
-import { LinearGradient, useFont, vec } from '@shopify/react-native-skia';
+import { LinearGradient, vec } from '@shopify/react-native-skia';
 import { useTheme } from '@shopify/restyle';
-import {
-  addWeeks,
-  eachDayOfInterval,
-  format,
-  subDays,
-  subWeeks
-} from 'date-fns';
+import { addDays, format } from 'date-fns';
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
-import { useSQLiteContext } from 'expo-sqlite';
-import { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Pressable, ScrollView } from 'react-native';
-import { Bar, CartesianChart, useChartPressState } from 'victory-native';
+import { CartesianChart, Bar, useChartPressState } from 'victory-native';
+import { useModal } from '@/components/ui/Modal';
+import { Theme } from '@/lib/theme';
 import { useDerivedValue } from 'react-native-reanimated';
+import { toDateId } from '@marceloterreiro/flash-calendar';
+import { useSQLiteContext } from 'expo-sqlite';
 import { Select } from '@/components/ui/Select';
 import {
   GroupByOption,
@@ -39,46 +37,34 @@ import {
   getChartConfigs
 } from './chartConfigs';
 import { UserSettings } from '@/types';
-const inter = require('../../../../assets/fonts/Inter-Regular.ttf');
-const interBold = require('../../../../assets/fonts/Inter-Bold.ttf');
+const inter = require('../../../assets/fonts/Inter-Regular.ttf');
+const interBold = require('../../../assets/fonts/Inter-Bold.ttf');
 
 type SearchParams = {
   dateRangeFrom: string;
   dateRangeTo: string;
 };
 
-type WorkoutSessionWithStats = Omit<WorkoutSession, 'workoutId'> & {
+type WorkoutSessionWithStats = {
   workoutId: number | null;
-} & {
+  weekStart: string;
+  weekEnd: string;
   setCount: number;
   avgRpe: number | null;
   volume: number;
 };
 
-export default function WeekTab() {
+export default function MonthTab() {
   const theme = useTheme<Theme>();
   const db = useSQLiteContext();
-
-  const chartFont = useFont(inter, 12);
-  const chartTitleFont = useFont(interBold, 24);
-  const chartSubTitleFont = useFont(interBold, 12);
-
-  const labelColor = `rgb(${theme.colors.chartLabel})`;
-  const chartLineColor = `rgba(${theme.colors.chartLine}, 0.4)`;
-  const chartColorA = theme.colors.chart_1_rgb;
-  const lineColor = `rgb(${chartColorA})`;
-  const areaGradient = [`rgb(${chartColorA})`, `rgba(${chartColorA}, 0.6)`];
-  const chartTitleColor = `rgb(${theme.colors.chartTitle})`;
-  const chartSubtitleColor = `rgba(${theme.colors.chartTitle}, 0.6)`;
 
   const { dateRangeFrom, dateRangeTo } = useLocalSearchParams<SearchParams>();
   const [{ is_metric }, setUserSettings] = useState<
     Pick<UserSettings, 'is_metric'>
   >({ is_metric: 1 });
   const [workouts, setWorkouts] = useState<WorkoutSessionWithStats[]>([]);
-  const [rawWorkouts, setRawWorkouts] = useState<
-    (WorkoutSessionWithStats & { selectedExercisesString: string })[]
-  >([]);
+  const [rawWorkouts, setRawWorkouts] = useState<WorkoutSessionWithStats[]>([]);
+
   const [filterType, setFilterType] = useState<
     (typeof filterTypeOptions)[number]
   >(filterTypeOptions[0]);
@@ -87,7 +73,7 @@ export default function WeekTab() {
     (typeof chartOptions)[number]
   >(chartOptions[0]);
   const [dateRange, setDateRange] = useState<{ from: Date; to: Date }>(
-    getDefaultDateRange('Week')
+    getDefaultDateRange('4W')
   );
 
   const { state, isActive } = useChartPressState({
@@ -98,6 +84,20 @@ export default function WeekTab() {
       avgRpe: 0
     }
   });
+
+  const chartFont = useFont(inter, 12);
+  const chartTitleFont = useFont(interBold, 24);
+  const chartSubTitleFont = useFont(interBold, 12);
+
+  const labelColor = `rgb(${theme.colors.chartLabel})`;
+  const chartLineColor = `rgba(${theme.colors.chartLine}, 0.4)`;
+  const chartColorA = theme.colors.chart_1_rgb;
+  const chartColorB = theme.colors.chart_2_rgb;
+  const areaGradientA = [`rgb(${chartColorA})`, `rgba(${chartColorA}, 0.6)`];
+  const areaGradientB = [`rgb(${chartColorB})`, `rgba(${chartColorB}, 0.6)`];
+  const lineColor = `rgb(${chartColorA})`;
+  const chartTitleColor = `rgb(${theme.colors.chartTitle})`;
+  const chartSubtitleColor = `rgba(${theme.colors.chartTitle}, 0.6)`;
 
   const chartTitleYValue = useDerivedValue(() => {
     const chartTitleUnit =
@@ -113,14 +113,43 @@ export default function WeekTab() {
   }, [is_metric, state, selectedChartType.value]);
 
   const chartTitleXValue = useDerivedValue(() => {
-    const date = new Date(state.x.value?.value);
-    const formattedValue = date.toLocaleString('en-US', {
+    const weekStart = new Date(state.x.value?.value);
+    const weekEnd = new Date(weekStart);
+    weekEnd.setDate(weekEnd.getDate() + 6);
+
+    const formattedWeekStart = weekStart.toLocaleString('en-US', {
       weekday: 'long',
       month: 'long',
       day: 'numeric'
     });
-    return `${formattedValue}`;
+    const formattedWeekEnd = weekEnd.toLocaleString('en-US', {
+      weekday: 'long',
+      month: 'long',
+      day: 'numeric'
+    });
+    return `${formattedWeekStart} - ${formattedWeekEnd}`;
   }, [state]);
+
+  function handleNextRange() {
+    let { to } = dateRange;
+    setDateRange(getFourWeekRange(to, 1));
+  }
+
+  function handlePrevRange() {
+    let { to } = dateRange;
+    setDateRange(getFourWeekRange(to, -1));
+  }
+
+  useFocusEffect(
+    useCallback(() => {
+      if (dateRangeFrom && dateRangeTo) {
+        setDateRange({
+          from: new Date(dateRangeFrom),
+          to: new Date(dateRangeTo)
+        });
+      }
+    }, [dateRangeFrom, dateRangeTo])
+  );
 
   useEffect(() => {
     const fetchUserSettings = async () => {
@@ -140,41 +169,33 @@ export default function WeekTab() {
     fetchUserSettings();
   }, []);
 
-  useFocusEffect(
-    useCallback(() => {
-      if (dateRangeFrom && dateRangeTo) {
-        setDateRange({
-          from: new Date(dateRangeFrom),
-          to: new Date(dateRangeTo)
-        });
-      }
-    }, [dateRangeFrom, dateRangeTo])
-  );
-
   useEffect(() => {
     let isActive = true;
 
-    const fetchData = async () => {
+    const fetchWorkouts = async () => {
       try {
         const workouts = await searchWorkouts();
-        const options = await searchOptions(filterType.value);
 
-        const rawWorkoutsWithExercises = await db.getAllAsync<
-          WorkoutSessionWithStats & { selectedExercisesString: string }
-        >(
+        const rawWorkouts = await db.getAllAsync<WorkoutSessionWithStats>(
           `
-          WITH RECURSIVE calendar AS (
-              SELECT DATE('${toDateId(dateRange.from)}') AS day
+          WITH RECURSIVE weekly_calendar AS (
+              SELECT 
+                  DATE('${toDateId(dateRange.from)}') AS week_start,
+                  DATE('${toDateId(dateRange.from)}', '+6 days') AS week_end,
+                  1 AS week_number
               UNION ALL
-              SELECT DATE(day, '+1 day')
-              FROM calendar
-              WHERE day < DATE('${toDateId(dateRange.to)}')
+              SELECT
+                  DATE(week_start, '+7 day'),
+                  DATE(week_end, '+7 day'),
+                  week_number + 1
+              FROM weekly_calendar
+              WHERE week_number < 4
           )
 
           SELECT
-              calendar.day AS workoutStart,
+              weekly_calendar.week_start AS weekStart,
+              weekly_calendar.week_end AS weekEnd,
               w.id AS workoutId,
-              w.workout_name as workoutName,
           SUM(
               CASE 
                   WHEN es.weight_unit = 'lb' THEN 
@@ -190,38 +211,35 @@ export default function WeekTab() {
               END * s.reps
               ) AS volume,
               COALESCE(ROUND(AVG(s.rpe),1), 0) AS avgRpe,
-              COALESCE(COUNT(s.weight), 0) AS setCount,
-              COALESCE((
-                      SELECT GROUP_CONCAT(name, ', ')
-                      FROM (
-                          SELECT DISTINCT exercises.name
-                          FROM sets s
-                          JOIN exercises ON s.exercise_id = exercises.id
-                          WHERE s.workout_id = w.id
-                      )
-                  ), '') AS selectedExercisesString
+              COALESCE(COUNT(s.weight), 0) AS setCount
           FROM
-              calendar
-          LEFT JOIN
-              workouts w ON DATE(w.start_time) = calendar.day
+              weekly_calendar
+          LEFT JOIN workouts w
+              ON DATE(w.start_time) BETWEEN weekly_calendar.week_start AND weekly_calendar.week_end
+              AND DATE(w.start_time) >= DATE('${toDateId(dateRange.from)}')
+              AND DATE(w.start_time) <= DATE('${toDateId(dateRange.to)}')
           LEFT JOIN
               sets s ON w.id = s.workout_id
           JOIN exercise_session es ON s.exercise_session_id = es.id
           LEFT JOIN
               exercises ON s.exercise_id = exercises.id
           GROUP BY
-              calendar.day
+              weekly_calendar.week_start
           ORDER BY
-              calendar.day;
+              weekly_calendar.week_start;
           `
         );
+
+        const options = await searchOptions(filterType.value);
 
         if (workouts) {
           setWorkouts(workouts);
         }
-        if (rawWorkoutsWithExercises) {
-          setRawWorkouts(rawWorkoutsWithExercises);
+
+        if (rawWorkouts) {
+          setRawWorkouts(rawWorkouts);
         }
+
         if (options) {
           setFilterType({ ...filterType, options });
         }
@@ -230,7 +248,7 @@ export default function WeekTab() {
       }
     };
 
-    fetchData();
+    fetchWorkouts();
 
     return () => {
       isActive = false;
@@ -282,16 +300,23 @@ export default function WeekTab() {
 
         const result = await db.getAllAsync<WorkoutSessionWithStats>(
           `
-          WITH RECURSIVE calendar AS (
-              SELECT DATE('${toDateId(dateRange.from)}') AS day
+          WITH RECURSIVE weekly_calendar AS (
+              SELECT 
+                  DATE('${toDateId(dateRange.from)}') AS week_start,
+                  DATE('${toDateId(dateRange.from)}', '+6 days') AS week_end,
+                  1 AS week_number
               UNION ALL
-              SELECT DATE(day, '+1 day')
-              FROM calendar
-              WHERE day < DATE('${toDateId(dateRange.to)}')
+              SELECT
+                  DATE(week_start, '+7 day'),
+                  DATE(week_end, '+7 day'),
+                  week_number + 1
+              FROM weekly_calendar
+              WHERE week_number < 4
           )
 
           SELECT
-              calendar.day AS workoutStart,
+              weekly_calendar.week_start AS weekStart,
+              weekly_calendar.week_end AS weekEnd,
               w.id AS workoutId,
           SUM(
               CASE 
@@ -310,9 +335,11 @@ export default function WeekTab() {
               COALESCE(ROUND(AVG(s.rpe),1), 0) AS avgRpe,
               COALESCE(COUNT(s.weight), 0) AS setCount
           FROM
-              calendar
-          LEFT JOIN
-              workouts w ON DATE(w.start_time) = calendar.day
+              weekly_calendar
+          LEFT JOIN workouts w
+              ON DATE(w.start_time) BETWEEN weekly_calendar.week_start AND weekly_calendar.week_end
+              AND DATE(w.start_time) >= DATE('${toDateId(dateRange.from)}')
+              AND DATE(w.start_time) <= DATE('${toDateId(dateRange.to)}')
           LEFT JOIN
               sets s ON w.id = s.workout_id
           JOIN exercise_session es ON s.exercise_session_id = es.id
@@ -322,28 +349,40 @@ export default function WeekTab() {
           ${filterType.value === 'exercise_categories' ? `LEFT JOIN exercise_categories ON exercises.category_id = exercise_categories.id` : ``}
           ${filterType.value === 'exercise_categories' && filterValue ? filterClause : ''}
           GROUP BY
-              calendar.day
+              weekly_calendar.week_start
           ORDER BY
-              calendar.day;
+              weekly_calendar.week_start;
           `
         );
 
-        const allWeekDays = eachDayOfInterval({
-          start: dateRange.from,
-          end: dateRange.to
-        });
+        const weeks = [];
+        let weekStart = dateRange.from;
+        let weekEnd = addDays(weekStart, 6);
+        for (let i = 0; i < 4; i++) {
+          weeks.push({
+            workoutId: null,
+            weekStart,
+            weekEnd,
+            avgRpe: 0,
+            setCount: 0,
+            volume: 0
+          });
 
-        const chartData: WorkoutSessionWithStats[] = allWeekDays.map(day => {
-          const formattedDate = format(day, 'yyyy-MM-dd');
+          weekStart = addDays(weekEnd, 1);
+          weekEnd = addDays(weekStart, 6);
+        }
+
+        const chartData: WorkoutSessionWithStats[] = weeks.map(week => {
+          const formattedWeekStart = format(week.weekStart, 'yyyy-MM-dd');
+          const formattedWeekEnd = format(week.weekEnd, 'yyyy-MM-dd');
           const workout = result.find(
-            item => item.workoutStart === formattedDate
+            item => item.weekStart === formattedWeekStart
           );
           return (
             workout || {
               workoutId: null,
-              workoutName: null,
-              workoutStart: formattedDate,
-              workoutEnd: null,
+              weekStart: formattedWeekStart,
+              weekEnd: formattedWeekEnd,
               avgRpe: 0,
               setCount: 0,
               volume: 0
@@ -370,22 +409,15 @@ export default function WeekTab() {
     useModal();
   const { present: presentRpeInfoModal, ref: presentRpeInfoRef } = useModal();
 
-  function handleNextRange() {
-    let { from, to } = dateRange;
-    setDateRange({ from: addWeeks(from, 1), to: addWeeks(to, 1) });
-  }
-
-  function handlePrevRange() {
-    let { from, to } = dateRange;
-    setDateRange({ from: subWeeks(from, 1), to: subWeeks(to, 1) });
-  }
-
   const { domain, domainPadding, formatYLabel, tickValues } = getChartConfigs<
     (typeof workouts)[number],
     typeof selectedChartType.value
   >(workouts, selectedChartType.value)[selectedChartType.value];
+  const formatXLabel = (label: string) => {
+    return label !== undefined ? format(new Date(label), 'MMM d') : '';
+  };
 
-  const workoutsWithoutPlaceholders = rawWorkouts.filter(
+  const workoutWeeksWithoutPlaceholders = rawWorkouts.filter(
     workout => workout.workoutId !== null
   );
 
@@ -414,7 +446,7 @@ export default function WeekTab() {
             />
             <Box flex={1} alignItems="center" justifyContent="center">
               <Pressable
-                onPress={() => setDateRange(getDefaultDateRange('Week'))}
+                onPress={() => setDateRange(getDefaultDateRange('4W'))}
               >
                 <Text variant="body" color="primary">
                   {`${format(dateRange.from, 'MMM d')} - ${format(dateRange.to, 'MMM d')}`}
@@ -454,12 +486,11 @@ export default function WeekTab() {
               />
             </Box>
             <Box flex={1}>
-              {/* TODO: bottomSheet fails to expand on iOS sometimes */}
               <Select
                 placeholder={filterType.secondaryPlaceholder}
                 value={filterValue?.value}
-                optionsTitle={filterType.labelPlural}
                 disabled={filterType.options.length === 0 && true}
+                optionsTitle={filterType.labelPlural}
                 options={filterType.options}
                 onSelect={option => {
                   setFilterValue(
@@ -474,7 +505,7 @@ export default function WeekTab() {
           <Box height={400}>
             <CartesianChart
               data={workouts}
-              xKey={'workoutStart'}
+              xKey={'weekStart'}
               yKeys={[selectedChartType.value]}
               chartPressState={state}
               domain={domain}
@@ -483,16 +514,15 @@ export default function WeekTab() {
                 font: chartFont,
                 labelColor,
                 lineColor: chartLineColor,
-                tickCount: 7,
-                formatXLabel: label => (label ? format(label, 'eee') : '')
+                formatXLabel
               }}
               yAxis={[
                 {
                   font: chartFont,
                   labelColor,
                   lineColor: chartLineColor,
-                  formatYLabel,
-                  tickValues
+                  tickValues,
+                  formatYLabel
                 }
               ]}
             >
@@ -532,7 +562,7 @@ export default function WeekTab() {
                       <LinearGradient
                         start={vec(0, 0)}
                         end={vec(0, 400)}
-                        colors={areaGradient}
+                        colors={areaGradientA}
                       />
                     </Bar>
                     {isActive ? (
@@ -550,19 +580,8 @@ export default function WeekTab() {
             </CartesianChart>
           </Box>
         ) : (
-          <Box
-            flex={1}
-            flexDirection="column"
-            gap="s"
-            justifyContent="center"
-            alignItems="center"
-          >
-            <Ionicons
-              name="calendar-outline"
-              size={50}
-              color={theme.colors.mutedForeground}
-            />
-            <Text color="mutedForeground" variant="header3">
+          <Box height={400} alignItems="center" justifyContent="center">
+            <Text color="primary" variant="header3">
               No workouts recorded
             </Text>
           </Box>
@@ -603,163 +622,145 @@ export default function WeekTab() {
             );
           })}
         </Box>
-        <Box flex={1} gap="l">
-          <Box
-            flexDirection="row"
-            alignItems="center"
-            justifyContent="space-between"
-          >
-            <Text color="primary" variant="header3">
-              This week
-            </Text>
-            <Pressable
-              onPress={() =>
-                router.navigate({
-                  pathname: '/screens/stats/(tabs)/month',
-                  params: {
-                    dateRangeFrom: toDateId(subDays(dateRange.to, 27)),
-                    dateRangeTo: toDateId(dateRange.to)
-                  }
-                })
-              }
+        {workouts.length > 0 && (
+          <Box flex={1} gap="m">
+            <Box
+              flexDirection="row"
+              alignItems="center"
+              justifyContent="space-between"
             >
-              <Box flexDirection="row" alignItems="center">
-                <Text color="mutedForeground">See month</Text>
-                <Box marginLeft="s">
-                  <Ionicons
-                    name="chevron-forward"
-                    size={16}
-                    color={theme.colors.mutedForeground}
-                  />
+              <Text color="primary" variant="header3">
+                This month
+              </Text>
+              <Pressable>
+                <Box flexDirection="row" alignItems="center">
+                  <Text color="mutedForeground">See all</Text>
+                  <Box marginLeft="s">
+                    <Ionicons
+                      name="chevron-forward"
+                      size={16}
+                      color={theme.colors.mutedForeground}
+                    />
+                  </Box>
                 </Box>
-              </Box>
-            </Pressable>
-          </Box>
-          <Box gap="m">
-            {workoutsWithoutPlaceholders.length > 0 ? (
-              workoutsWithoutPlaceholders.map(
-                (
-                  {
-                    workoutStart,
-                    volume,
-                    avgRpe,
-                    setCount,
-                    selectedExercisesString
-                  },
-                  idx
-                ) => {
-                  return (
-                    <Pressable
-                      key={idx}
-                      onPress={() => {
-                        router.navigate({
-                          pathname: '/screens/stats/(tabs)/day',
-                          params: {
-                            dateRangeFrom: workoutStart,
-                            dateRangeTo: workoutStart
-                          }
-                        });
-                      }}
-                    >
-                      <Card>
-                        <CardHeader gap="s">
-                          <Box
-                            flexDirection="row"
-                            justifyContent="space-between"
-                            alignItems="center"
-                          >
+              </Pressable>
+            </Box>
+            <Box gap="s">
+              {workoutWeeksWithoutPlaceholders.length > 0 ? (
+                workoutWeeksWithoutPlaceholders.map(
+                  ({ weekStart, weekEnd, volume, avgRpe, setCount }, idx) => {
+                    return (
+                      <Pressable
+                        key={idx}
+                        onPress={() => {
+                          router.navigate({
+                            pathname: '/stats/(tabs)/week',
+                            params: {
+                              dateRangeFrom: weekStart,
+                              dateRangeTo: weekEnd
+                            }
+                          });
+                        }}
+                      >
+                        <Card>
+                          <CardHeader gap="s">
                             <Box
-                              flex={1}
-                              gap="xxs"
-                              justifyContent="center"
-                              flexDirection="column"
+                              flexDirection="row"
+                              justifyContent="space-between"
+                              alignItems="center"
                             >
-                              <Text
-                                variant="body"
-                                fontWeight={500}
-                                fontSize={18}
-                                color="primary"
+                              <Box
+                                flex={1}
+                                gap="xxs"
+                                justifyContent="center"
+                                flexDirection="column"
                               >
-                                {workoutsWithoutPlaceholders[idx].workoutName ??
-                                  `${format(workoutStart, 'EEEE')} Workout`}
-                              </Text>
-                              <Text fontSize={12} color="mutedForeground">
-                                {`${format(workoutStart, 'hh:mm b')}`}
-                              </Text>
+                                <Text
+                                  variant="body"
+                                  fontWeight={500}
+                                  fontSize={18}
+                                  color="primary"
+                                >
+                                  {`Workout week`}
+                                </Text>
+                                <Text fontSize={12} color="mutedForeground">
+                                  {`${format(weekStart, 'MMMM d')} - ${format(weekEnd, 'MMMM d')}`}
+                                </Text>
+                              </Box>
+                              <Pressable>
+                                <Ionicons
+                                  name="ellipsis-vertical"
+                                  color={theme.colors.primary}
+                                  size={18}
+                                />
+                              </Pressable>
                             </Box>
-                            <Pressable>
-                              <Ionicons
-                                name="ellipsis-vertical"
-                                color={theme.colors.primary}
-                                size={18}
-                              />
-                            </Pressable>
-                          </Box>
-                          <CardDescription numberOfLines={2} fontSize={14}>
-                            {selectedExercisesString}
-                          </CardDescription>
-                        </CardHeader>
-                        <CardContent flexDirection="row" gap="s">
-                          <Pressable onPress={presentVolumeInfoModal}>
-                            <Badge
-                              label={`${formatNumber(volume)} ${is_metric ? 'kg' : 'lb'}`}
-                              backgroundColor="secondary"
-                              borderColor="secondary"
-                              color="secondaryForeground"
-                              iconLeft={
-                                <FontAwesome6
-                                  name="weight-hanging"
-                                  size={16}
-                                  color={theme.colors.secondaryForeground}
-                                />
-                              }
-                            />
-                          </Pressable>
-                          <Pressable onPress={presentVolumeInfoModal}>
-                            <Badge
-                              label={`${setCount}`}
-                              backgroundColor="secondary"
-                              borderColor="secondary"
-                              color="secondaryForeground"
-                              iconLeft={
-                                <FontAwesome6
-                                  name="repeat"
-                                  size={16}
-                                  color={theme.colors.secondaryForeground}
-                                />
-                              }
-                            />
-                          </Pressable>
-                          {avgRpe !== null && avgRpe > 0 ? (
-                            <Pressable onPress={presentRpeInfoModal}>
+                            {/* <CardDescription numberOfLines={2} fontSize={14}> */}
+                            {/*   {exerciseSelectionSummary} */}
+                            {/* </CardDescription> */}
+                          </CardHeader>
+                          <CardContent flexDirection="row" gap="s">
+                            <Pressable onPress={presentVolumeInfoModal}>
                               <Badge
-                                label={avgRpe.toString()}
+                                label={`${formatNumber(volume)} ${is_metric ? 'kg' : 'lb'}`}
                                 backgroundColor="secondary"
                                 borderColor="secondary"
                                 color="secondaryForeground"
                                 iconLeft={
                                   <FontAwesome6
-                                    name="gauge"
+                                    name="weight-hanging"
                                     size={16}
                                     color={theme.colors.secondaryForeground}
                                   />
                                 }
                               />
                             </Pressable>
-                          ) : null}
-                        </CardContent>
-                      </Card>
-                    </Pressable>
-                  );
-                }
-              )
-            ) : (
-              <Text color="mutedForeground" variant="body">
-                No workouts found
-              </Text>
-            )}
+                            <Pressable onPress={presentVolumeInfoModal}>
+                              <Badge
+                                label={setCount.toString()}
+                                backgroundColor="secondary"
+                                borderColor="secondary"
+                                color="secondaryForeground"
+                                iconLeft={
+                                  <FontAwesome6
+                                    name="repeat"
+                                    size={16}
+                                    color={theme.colors.secondaryForeground}
+                                  />
+                                }
+                              />
+                            </Pressable>
+                            {avgRpe !== null && avgRpe > 0 ? (
+                              <Pressable onPress={presentRpeInfoModal}>
+                                <Badge
+                                  label={avgRpe.toString()}
+                                  backgroundColor="secondary"
+                                  borderColor="secondary"
+                                  color="secondaryForeground"
+                                  iconLeft={
+                                    <FontAwesome6
+                                      name="gauge"
+                                      size={16}
+                                      color={theme.colors.secondaryForeground}
+                                    />
+                                  }
+                                />
+                              </Pressable>
+                            ) : null}
+                          </CardContent>
+                        </Card>
+                      </Pressable>
+                    );
+                  }
+                )
+              ) : (
+                <Text color="mutedForeground" variant="body">
+                  No workouts found
+                </Text>
+              )}
+            </Box>
           </Box>
-        </Box>
+        )}
         <Modal
           ref={presentVolumeInfoRef}
           title="Total Workout Volume"

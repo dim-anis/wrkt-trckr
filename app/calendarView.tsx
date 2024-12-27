@@ -286,13 +286,13 @@ export default function CalendarView() {
                   size={20}
                 />
               </Pressable>
-              <Pressable hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}>
-                <Ionicons
-                  name="ellipsis-vertical"
-                  color={theme.colors.primary}
-                  size={20}
-                />
-              </Pressable>
+              {/* <Pressable hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}> */}
+              {/*   <Ionicons */}
+              {/*     name="ellipsis-vertical" */}
+              {/*     color={theme.colors.primary} */}
+              {/*     size={20} */}
+              {/*   /> */}
+              {/* </Pressable> */}
             </Box>
           ),
           headerTitle: 'Workout calendar',

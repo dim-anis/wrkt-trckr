@@ -23,7 +23,7 @@ type SearchParams = { workoutDate?: string };
 const exerciseMenuItems: TMenuItem[] = [
   {
     id: 'settings-statistics',
-    href: '/screens/stats',
+    href: '/stats',
     label: 'Exercise statistics',
     icon: 'stats-chart-outline'
   }
@@ -197,7 +197,11 @@ export default function Search() {
       <Stack.Screen
         options={{
           headerShown: true,
-          title: 'Search',
+          headerStyle: {
+            backgroundColor: theme.colors.background
+          },
+          headerTintColor: theme.colors.primary,
+          title: 'Search exercises',
           headerRight: () => (
             <Box
               flexDirection="row"
@@ -205,13 +209,13 @@ export default function Search() {
               alignItems="center"
               gap="m"
             >
-              <Pressable hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}>
-                <Ionicons
-                  name="ellipsis-vertical-outline"
-                  size={20}
-                  color={theme.colors.primary}
-                />
-              </Pressable>
+              {/* <Pressable hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}> */}
+              {/*   <Ionicons */}
+              {/*     name="ellipsis-vertical-outline" */}
+              {/*     size={20} */}
+              {/*     color={theme.colors.primary} */}
+              {/*   /> */}
+              {/* </Pressable> */}
             </Box>
           )
         }}
@@ -276,9 +280,7 @@ export default function Search() {
             <Button
               label="Create exercise"
               paddingHorizontal="m"
-              onPress={() =>
-                router.navigate({ pathname: '/screens/createExercise' })
-              }
+              onPress={() => router.navigate({ pathname: '/createExercise' })}
             />
           </Box>
         ) : (

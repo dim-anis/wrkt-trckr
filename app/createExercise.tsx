@@ -87,6 +87,10 @@ export default function CreateExercise() {
         options={{
           headerShown: true,
           title: 'Create exercise',
+          headerStyle: {
+            backgroundColor: theme.colors.background
+          },
+          headerTintColor: theme.colors.primary,
           headerRight: () => (
             <Box
               flexDirection="row"
@@ -94,13 +98,13 @@ export default function CreateExercise() {
               alignItems="center"
               gap="m"
             >
-              <Pressable hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}>
-                <Ionicons
-                  name="ellipsis-vertical-outline"
-                  size={20}
-                  color={theme.colors.primary}
-                />
-              </Pressable>
+              {/* <Pressable hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}> */}
+              {/*   <Ionicons */}
+              {/*     name="ellipsis-vertical-outline" */}
+              {/*     size={20} */}
+              {/*     color={theme.colors.primary} */}
+              {/*   /> */}
+              {/* </Pressable> */}
             </Box>
           )
         }}
@@ -139,7 +143,7 @@ export default function CreateExercise() {
                   <Ionicons name="add" size={18} color={theme.colors.primary} />
                 }
                 onPress={() => {
-                  router.navigate({ pathname: '/screens/createCategory' });
+                  router.navigate({ pathname: '/createCategory' });
                 }}
               />
             </Box>

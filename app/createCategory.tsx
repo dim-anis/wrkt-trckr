@@ -45,6 +45,10 @@ export default function CreateCategory() {
         options={{
           headerShown: true,
           title: 'Create category',
+          headerStyle: {
+            backgroundColor: theme.colors.background
+          },
+          headerTintColor: theme.colors.primary,
           headerRight: () => (
             <Box
               flexDirection="row"
@@ -52,13 +56,13 @@ export default function CreateCategory() {
               alignItems="center"
               gap="m"
             >
-              <Pressable hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}>
-                <Ionicons
-                  name="ellipsis-vertical-outline"
-                  size={20}
-                  color={theme.colors.primary}
-                />
-              </Pressable>
+              {/* <Pressable hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}> */}
+              {/*   <Ionicons */}
+              {/*     name="ellipsis-vertical-outline" */}
+              {/*     size={20} */}
+              {/*     color={theme.colors.primary} */}
+              {/*   /> */}
+              {/* </Pressable> */}
             </Box>
           )
         }}

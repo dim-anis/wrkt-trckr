@@ -478,19 +478,17 @@ export default function SelectTemplate() {
             >
               <Pressable
                 hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
-                onPress={() =>
-                  router.navigate('/screens/template/createTemplate')
-                }
+                onPress={() => router.navigate('/template/createTemplate')}
               >
                 <Ionicons name="add" size={20} color={theme.colors.primary} />
               </Pressable>
-              <Box hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}>
-                <Ionicons
-                  name="ellipsis-vertical"
-                  size={20}
-                  color={theme.colors.primary}
-                />
-              </Box>
+              {/* <Pressable hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}> */}
+              {/*   <Ionicons */}
+              {/*     name="ellipsis-vertical" */}
+              {/*     size={20} */}
+              {/*     color={theme.colors.primary} */}
+              {/*   /> */}
+              {/* </Pressable> */}
             </Box>
           )
         }}

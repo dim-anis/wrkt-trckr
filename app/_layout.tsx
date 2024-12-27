@@ -57,7 +57,13 @@ function RootLayoutNav() {
   return (
     <Providers>
       <Stack initialRouteName="index">
-        <Stack.Screen name="screens" options={{ headerShown: false }} />
+        <Stack.Screen name="index" />
+        <Stack.Screen name="template" options={{ headerShown: false }} />
+        <Stack.Screen name="search" options={{ headerShown: false }} />
+        <Stack.Screen name="createExercise" options={{ headerShown: false }} />
+        <Stack.Screen name="createCategory" options={{ headerShown: false }} />
+        <Stack.Screen name="settings" options={{ headerShown: false }} />
+        <Stack.Screen name="stats" options={{ headerShown: false }} />
       </Stack>
     </Providers>
   );

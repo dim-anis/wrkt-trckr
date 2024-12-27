@@ -41,8 +41,8 @@ import {
 } from '@/lib/zodSchemas';
 import WorkoutStatsCard from '@/components/WorkoutStatsCard';
 import { UserSettings } from '@/types';
-const inter = require('../../../../assets/fonts/Inter-Regular.ttf');
-const interBold = require('../../../../assets/fonts/Inter-Bold.ttf');
+const inter = require('../../../assets/fonts/Inter-Regular.ttf');
+const interBold = require('../../../assets/fonts/Inter-Bold.ttf');
 
 type SearchParams = {
   dateRangeFrom?: string;
@@ -542,7 +542,7 @@ export default function DayTab() {
                 <Pressable
                   onPress={() =>
                     router.navigate({
-                      pathname: '/screens/stats/(tabs)/week',
+                      pathname: '/stats/(tabs)/week',
                       params: {
                         dateRangeFrom: toDateId(
                           startOfWeek(dateRange.from, { weekStartsOn: 1 })
