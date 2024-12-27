@@ -6,6 +6,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import { PropsWithChildren, useEffect } from 'react';
 import 'react-native-reanimated';
 import { darkTheme, theme } from '../lib/theme';
+import * as SystemUI from 'expo-system-ui';
 
 import { useColorScheme } from '@/components/useColorScheme';
 import { migrateDbIfNeeded } from '@/lib/db';
@@ -124,6 +125,12 @@ function ThemeProviderWithPreference({ children }: PropsWithChildren) {
   } else {
     colorScheme = colorScheme;
   }
+
+  SystemUI.setBackgroundColorAsync(
+    colorScheme === 'dark'
+      ? darkTheme.colors.background
+      : theme.colors.background
+  );
 
   return (
     <ThemeProvider theme={colorScheme === 'dark' ? darkTheme : theme}>
