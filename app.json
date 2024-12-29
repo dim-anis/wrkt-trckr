@@ -31,10 +31,15 @@
           "image": "./assets/images/splash.png",
           "resizeMode": "contain",
           "backgroundColor": "#ffffff",
-          "dark": {
-            "image": "./assets/images/splash-dark.png",
+          "android": {
+            "image": "./assets/images/splash.png",
             "resizeMode": "contain",
-            "backgroundColor": "#09090b"
+            "backgroundColor": "#ffffff",
+            "dark": {
+              "image": "./assets/images/splash-dark.png",
+              "resizeMode": "contain",
+              "backgroundColor": "#09090b"
+            }
           }
         }
       ]
