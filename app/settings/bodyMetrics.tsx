@@ -24,8 +24,9 @@ import {
   Text as SkiaText
 } from '@shopify/react-native-skia';
 import { useDerivedValue } from 'react-native-reanimated';
-import { showToast } from '@/lib/utils';
+import { convertToKg, convertToLbs, showToast } from '@/lib/utils';
 import MenuItem from '@/components/MenuItem';
+import { UserSettings } from '@/types';
 const inter = require('../../assets/fonts/Inter-Regular.ttf');
 const interBold = require('../../assets/fonts/Inter-Bold.ttf');
 
@@ -33,14 +34,17 @@ export default function BodyMetricsPage() {
   const theme = useTheme<Theme>();
   const db = useSQLiteContext();
 
+  const [{ is_metric }, setUserSettings] = useState<
+    Pick<UserSettings, 'is_metric'>
+  >({ is_metric: 1 });
   const [weighins, setWeighins] = useState<WeighIn[]>([]);
+  const preferredWeightUnit = is_metric ? 'kg' : 'lb';
+  console.log({ preferredWeightUnit });
 
-  const { control, reset, handleSubmit, getValues } = useForm<WeighIn>({
+  const { control, reset, handleSubmit } = useForm<WeighIn>({
     resolver: zodResolver(weighInSchema),
-    defaultValues: { weight: 0, weightUnit: 'kg' }
+    defaultValues: { weight: 0 }
   });
-
-  const weightUnit = getValues('weightUnit');
 
   const chartFont = useFont(inter, 12);
   const chartTitleFont = useFont(interBold, 24);
@@ -61,8 +65,8 @@ export default function BodyMetricsPage() {
 
   const chartTitleYValue = useDerivedValue(() => {
     const formattedValue = state.y.weight.value?.value?.toLocaleString();
-    return `${formattedValue} ${weightUnit}`;
-  }, [state]);
+    return `${formattedValue} ${preferredWeightUnit}`;
+  }, [is_metric, state]);
 
   const chartTitleXValue = useDerivedValue(() => {
     const x = state.x.value?.value;
@@ -77,16 +81,55 @@ export default function BodyMetricsPage() {
   }, [state]);
 
   useEffect(() => {
+    const fetchUserSettings = async () => {
+      try {
+        const result = await db.getFirstAsync<Pick<UserSettings, 'is_metric'>>(
+          `SELECT is_metric from user_settings;`
+        );
+
+        if (result) {
+          setUserSettings(result);
+        }
+      } catch (error) {
+        console.log(error);
+      }
+    };
+
+    fetchUserSettings();
+  }, []);
+
+  useEffect(() => {
     let isActive = true;
 
     const fetchData = async () => {
       try {
         const weighins = await db.getAllAsync<WeighIn>(
-          `SELECT id, date, weight, weight_unit as weightUnit from weighins;`
+          `
+          SELECT 
+              id, 
+              date, 
+              CASE
+                WHEN weighins.weight_unit = 'lb' THEN
+                  CASE 
+                      WHEN (SELECT is_metric FROM user_settings) = 1 THEN ROUND(weight / 2.20462 * 2, 0) / 2
+                      ELSE ROUND(weight * 2, 0) / 2 
+                  END
+                ELSE
+                  CASE 
+                      WHEN (SELECT is_metric FROM user_settings) = 0 THEN ROUND(weight * 2.20462 * 2, 0) / 2
+                      ELSE ROUND(weight * 2, 0) / 2
+                  END
+              END AS weight, 
+              weight_unit AS weightUnit
+          FROM 
+              weighins;`
         );
 
         if (weighins.length) {
-          reset(weighins.at(-1));
+          reset({
+            weight: weighins.at(-1)?.weight,
+            weightUnit: preferredWeightUnit
+          });
           setWeighins(weighins);
         }
       } catch (error) {
@@ -99,7 +142,7 @@ export default function BodyMetricsPage() {
     return () => {
       isActive = false;
     };
-  }, []);
+  }, [preferredWeightUnit]);
 
   async function onUpdate(formData: WeighIn) {
     const { success, data, error } =
@@ -140,11 +183,30 @@ export default function BodyMetricsPage() {
     if (success) {
       const { weight, weightUnit, date } = data;
 
+      const weightInPreferredWeightUnits =
+        preferredWeightUnit === 'lb'
+          ? weightUnit === 'lb'
+            ? weight
+            : convertToLbs(weight)
+          : preferredWeightUnit === 'kg'
+            ? weightUnit === 'kg'
+              ? weight
+              : convertToKg(weight)
+            : weight;
+
+      console.log({ weight, weightInPreferredWeightUnits });
+
       const lastWeighinDate = weighins.at(-1)?.date;
       setWeighins(
         date === lastWeighinDate
-          ? [...weighins.slice(0, -1), { weightUnit, weight, date }]
-          : [...weighins, { weightUnit, weight, date }]
+          ? [
+              ...weighins.slice(0, -1),
+              { weightUnit, weight: weightInPreferredWeightUnits, date }
+            ]
+          : [
+              ...weighins,
+              { weightUnit, weight: weightInPreferredWeightUnits, date }
+            ]
       );
 
       const result = await db.runAsync(
@@ -241,7 +303,7 @@ export default function BodyMetricsPage() {
                     </Text>
                   </Box>
                   <Text variant="header3" fontWeight={500} color="primary">
-                    {`${latestWeighin.weight} ${latestWeighin.weightUnit}`}
+                    {`${latestWeighin.weight} ${preferredWeightUnit}`}
                   </Text>
                 </Box>
               </Box>
@@ -354,7 +416,7 @@ export default function BodyMetricsPage() {
                               variant="body"
                               fontWeight={500}
                             >
-                              {`${entry.weight} ${entry.weightUnit}`}
+                              {`${entry.weight} ${preferredWeightUnit}`}
                             </Text>
                           </Box>
                         </Box>
