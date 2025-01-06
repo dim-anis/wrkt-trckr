@@ -8,11 +8,11 @@ import {
   Exercise,
   ExerciseCategory,
   Template,
-  ExerciseSession
+  ExerciseSession,
+  WorkoutWithStats
 } from './zodSchemas';
 import { addDays, endOfWeek, startOfWeek, subDays } from 'date-fns';
-import { Workout } from '@/app/stats/(tabs)/types';
-import { Workout as ZodWorkout } from './zodSchemas';
+import { Workout } from './zodSchemas';
 
 export type ValueOf<T> = T[keyof T];
 
@@ -217,13 +217,13 @@ export function getDefaultDateRange(type: 'Day' | 'Week' | '4W') {
 
 export function groupSetsByWorkout(
   sets: (WorkoutSession & Exercise & ExerciseSession & ExerciseCategory & Set)[]
-): Workout[] {
-  const workouts: { [key: number]: Workout } = {};
-
+): WorkoutWithStats[] {
+  const workouts: { [key: number]: WorkoutWithStats } = {};
   sets.forEach(set => {
     const {
       workoutId,
       workoutStart,
+      workoutEnd,
       workoutName,
       exerciseName,
       exerciseId,
@@ -250,6 +250,7 @@ export function groupSetsByWorkout(
         workoutId,
         workoutName,
         workoutStart,
+        workoutEnd,
         workoutStats: {
           volume: 0,
           setCount: 0,
@@ -349,7 +350,7 @@ export function groupSetsByWorkout(
 
 export function groupWorkoutSessions(
   sets: (WorkoutSession & ExerciseSessionWithExercise & Set)[]
-): ZodWorkout['workouts'] {
+): Workout['workouts'] {
   const workoutSessionMap = new Map<
     number,
     {

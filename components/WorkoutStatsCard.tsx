@@ -4,7 +4,7 @@ import { Text } from './ui/Text';
 import Separator from './Separator';
 import { convertToLbs, formatNumber, roundToNearestHalf } from '@/lib/utils';
 import ExerciseList from './ExerciseList';
-import { Workout } from '@/app/stats/(tabs)/types';
+import { WorkoutWithStats } from '@/lib/zodSchemas';
 
 export default function WorkoutStatsCard({
   workoutName,
@@ -12,7 +12,7 @@ export default function WorkoutStatsCard({
   workoutStats,
   exercises,
   isMetric = true
-}: Omit<Workout, 'categories' | 'workoutId'> & { isMetric: boolean }) {
+}: Omit<WorkoutWithStats, 'categories' | 'workoutId'> & { isMetric: boolean }) {
   const totalVolumeFormatted =
     workoutStats &&
     formatNumber(

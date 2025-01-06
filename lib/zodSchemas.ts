@@ -137,3 +137,15 @@ export const templateSchema = z.object({
     .min(1, { message: 'Select at least 1 exercise' })
 });
 export type Template = z.infer<typeof templateSchema>;
+
+export type Stat = {
+  volume: number;
+  setCount: number;
+  avgRpe: number | null;
+};
+
+export type WorkoutWithStats = WorkoutSession & {
+  workoutStats: Stat & { totalTime: number };
+  exercises: (ExerciseSessionWithSets & { stats: Stat })[];
+  categories: (ExerciseCategory & { sets: Set[] } & { stats: Stat })[];
+};

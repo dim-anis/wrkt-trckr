@@ -31,13 +31,13 @@ import {
   chartOptions,
   getChartConfigs
 } from '../../../lib/chartConfigs';
-import { Workout } from './types';
 import {
   Exercise,
   ExerciseCategory,
   ExerciseSession,
   Set,
-  WorkoutSession
+  WorkoutSession,
+  WorkoutWithStats
 } from '@/lib/zodSchemas';
 import WorkoutStatsCard from '@/components/WorkoutStatsCard';
 import { UserSettings } from '@/types';
@@ -75,7 +75,7 @@ export default function DayTab() {
   const [dateRange, setDateRange] = useState<{ from: Date; to: Date }>(
     getDefaultDateRange('Day')
   );
-  const [workouts, setWorkouts] = useState<Workout[]>([]);
+  const [workouts, setWorkouts] = useState<WorkoutWithStats[]>([]);
   const [sameDayWorkoutIndex, setSameDayWorkoutIndex] = useState(
     Number(workoutIndex) || 0
   );
@@ -115,7 +115,7 @@ export default function DayTab() {
     }, [dateRangeFrom])
   );
 
-  function searchWorkouts(): Promise<Workout[]> {
+  function searchWorkouts(): Promise<WorkoutWithStats[]> {
     return new Promise(async (resolve, reject) => {
       try {
         const result = await db.getAllAsync<
