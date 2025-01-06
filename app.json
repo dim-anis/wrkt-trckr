@@ -28,21 +28,19 @@
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/splash.png",
+          "image": "./assets/images/splash-icon.png",
           "resizeMode": "contain",
-          "backgroundColor": "#ffffff",
-          "android": {
-            "image": "./assets/images/splash.png",
+          "backgroundColor": "#FAFAFA",
+          "dark": {
+            "image": "./assets/images/splash-icon-dark.png",
             "resizeMode": "contain",
-            "backgroundColor": "#ffffff",
-            "dark": {
-              "image": "./assets/images/splash-dark.png",
-              "resizeMode": "contain",
-              "backgroundColor": "#09090b"
-            }
-          }
+            "backgroundColor": "#09090b"
+          },
+          "imageWidth": 200
         }
-      ]
+      ],
+      "expo-font",
+      "expo-sqlite"
     ],
     "experiments": {
       "typedRoutes": true
