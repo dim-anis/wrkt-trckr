@@ -20,7 +20,7 @@ export default function TabLayout() {
   const theme = useTheme<Theme>();
   return (
     <MaterialTopTabs
-      initialRouteName="Day"
+      initialRouteName="day"
       sceneContainerStyle={{ backgroundColor: theme.colors.background }}
       screenOptions={{
         tabBarActiveTintColor: theme.colors.primary,
