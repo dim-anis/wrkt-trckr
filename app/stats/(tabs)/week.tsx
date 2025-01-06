@@ -37,7 +37,7 @@ import {
   chartOptions,
   filterTypeOptions,
   getChartConfigs
-} from './chartConfigs';
+} from '../../../lib/chartConfigs';
 import { UserSettings } from '@/types';
 const inter = require('../../../assets/fonts/Inter-Regular.ttf');
 const interBold = require('../../../assets/fonts/Inter-Bold.ttf');

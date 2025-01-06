@@ -30,7 +30,7 @@ import {
   chartGroupByOptions,
   chartOptions,
   getChartConfigs
-} from './chartConfigs';
+} from '../../../lib/chartConfigs';
 import { Workout } from './types';
 import {
   Exercise,
