@@ -16,6 +16,7 @@ import { SQLiteProvider, useSQLiteContext } from 'expo-sqlite';
 import React from 'react';
 import FlashMessage from 'react-native-flash-message';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { StatusBar } from 'expo-status-bar';
 
 export {
   // Catch any errors thrown by the Layout component.
@@ -126,14 +127,17 @@ function ThemeProviderWithPreference({ children }: PropsWithChildren) {
     colorScheme = colorScheme;
   }
 
-  SystemUI.setBackgroundColorAsync(
-    colorScheme === 'dark'
-      ? darkTheme.colors.background
-      : theme.colors.background
-  );
+  const preferredTheme = colorScheme === 'dark' ? darkTheme : theme;
+  const statusBarStyle = colorScheme === 'light' ? 'dark' : 'light';
+
+  SystemUI.setBackgroundColorAsync(preferredTheme.colors.background);
 
   return (
-    <ThemeProvider theme={colorScheme === 'dark' ? darkTheme : theme}>
+    <ThemeProvider theme={preferredTheme}>
+      <StatusBar
+        style={statusBarStyle}
+        backgroundColor={preferredTheme.colors.background}
+      />
       {children}
     </ThemeProvider>
   );
