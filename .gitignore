@@ -3,6 +3,8 @@
 # builds
 android
 
+.sqlfluff
+
 # dependencies
 node_modules/
 
