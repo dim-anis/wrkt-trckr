@@ -89,17 +89,19 @@ const ExerciseSessions = ({
               >
                 {exerciseName}
               </Text>
-              <Pressable
-                onPress={() =>
-                  exerciseModal.present({ exerciseName, exerciseSessionIndex })
-                }
-              >
-                <Ionicons
-                  name="ellipsis-horizontal"
-                  color={theme.colors.primary}
-                  size={20}
-                />
-              </Pressable>
+              {/* TODO: Implement copy, duplicate */}
+
+              {/* <Pressable */}
+              {/*   onPress={() => */}
+              {/*     exerciseModal.present({ exerciseName, exerciseSessionIndex }) */}
+              {/*   } */}
+              {/* > */}
+              {/*   <Ionicons */}
+              {/*     name="ellipsis-horizontal" */}
+              {/*     color={theme.colors.primary} */}
+              {/*     size={20} */}
+              {/*   /> */}
+              {/* </Pressable> */}
             </Box>
             <Box gap="m">
               <ControlledInput
