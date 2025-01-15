@@ -222,7 +222,6 @@ export default function Search() {
       />
       <Box flex={1} gap={'l'}>
         <Input
-          autoFocus
           onChangeText={text => setSearchTerm(text)}
           placeholder="Search exercises by name or category..."
           value={searchTerm}
