@@ -27,7 +27,9 @@ import {
   Set,
   ExerciseSessionWithExercise,
   Workout,
-  workoutSchema
+  workoutSchema,
+  WorkoutSessionWithExercises,
+  ExerciseSessionWithSets
 } from '@/lib/zodSchemas';
 import WorkoutSessions from '../components/WorkoutSessions';
 import Button from '@/components/ui/Button';
@@ -70,6 +72,12 @@ type SearchParams = {
   workoutId: string;
 };
 
+export type ClipboardState =
+  | { type: 'none' }
+  | { type: 'exerciseSession'; data: ExerciseSessionWithSets }
+  | { type: 'workoutSession'; data: WorkoutSessionWithExercises }
+  | { type: 'day'; data: WorkoutSessionWithExercises[] };
+
 export default function MainScreen() {
   const theme = useTheme<Theme>();
   const db = useSQLiteContext();
@@ -81,14 +89,11 @@ export default function MainScreen() {
   const [isWorkoutSynched, setIsWorkoutSynched] = useState(true);
   const [currentDate, setCurrentDate] = useState(workoutDateId || todayDateId);
   const [isLoading, setIsLoading] = useState(true);
+  const [clipboard, setClipboard] = useState<ClipboardState>({ type: 'none' });
 
   const controllerRef = useRef<AbortController | null>(null);
 
-  const {
-    present: presentMore,
-    dismiss: dismissMore,
-    ref: refMore
-  } = useModal();
+  const moreModal = useModal();
 
   const {
     handleSubmit,
@@ -184,72 +189,98 @@ export default function MainScreen() {
       const { workouts } = data;
 
       await db.withTransactionAsync(async () => {
-        for (const workout of workouts) {
-          const { exercises, workoutId, workoutName } = workout;
-          await db.runAsync(
-            `UPDATE workouts SET workout_name = ? WHERE id = ?`,
-            workoutName,
-            workoutId
-          );
+        try {
+          for (const workout of workouts) {
+            let { exercises, workoutId, workoutName, workoutStart } = workout;
 
-          for (const exercise of exercises) {
-            const {
-              sets,
-              exerciseSessionId,
-              exerciseSessionNotes,
-              exerciseSessionWeightUnit
-            } = exercise;
+            if (!workoutId) {
+              workoutId = (
+                await db.runAsync(
+                  `INSERT INTO workouts (start_time) VALUES (?);`,
+                  workoutStart
+                )
+              ).lastInsertRowId;
+            }
 
-            // Update exercise session
             await db.runAsync(
-              `UPDATE exercise_session SET notes = ?, weight_unit = ? WHERE id = ?;`,
-              [
-                exerciseSessionNotes,
-                exerciseSessionWeightUnit,
-                exerciseSessionId
-              ]
+              `UPDATE workouts SET workout_name = ? WHERE id = ?`,
+              workoutName,
+              workoutId
             );
 
-            for (const set of sets) {
-              const {
-                weight,
-                reps,
-                addedResistance,
-                rpe,
-                createdAt,
-                exerciseId,
-                id: setId
-              } = set;
+            for (const exercise of exercises) {
+              let {
+                sets,
+                exerciseSessionId,
+                exerciseSessionNotes,
+                exerciseSessionWeightUnit,
+                exerciseId
+              } = exercise;
 
-              if (setId) {
-                // Update existing set
-                await db.runAsync(
-                  `UPDATE sets SET weight = ?, reps = ?, added_resistance = ?, rpe = ? WHERE id = ?;`,
-                  [weight, reps, addedResistance, rpe, setId]
-                );
-              } else {
-                // Insert new set
-                if (!exerciseId) {
-                  throw new Error(`No exerciseId found`);
-                }
-
-                await db.runAsync(
-                  `INSERT INTO sets (workout_id, exercise_id, exercise_session_id, weight, reps, added_resistance, rpe, created_at) 
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?);`,
-                  [
+              // Create exercise session if doesn't exist
+              if (!exerciseSessionId) {
+                exerciseSessionId = (
+                  await db.runAsync(
+                    `INSERT INTO exercise_session (workout_id, exercise_id, start_time) VALUES (?, ?, ?)`,
                     workoutId,
-                    exerciseId,
-                    exerciseSessionId,
-                    weight,
-                    reps,
-                    addedResistance,
-                    rpe,
-                    createdAt
-                  ]
-                );
+                    exerciseId!
+                  )
+                ).lastInsertRowId;
+              }
+
+              // Update exercise session
+              await db.runAsync(
+                `UPDATE exercise_session SET notes = ?, weight_unit = ? WHERE id = ?;`,
+                [
+                  exerciseSessionNotes,
+                  exerciseSessionWeightUnit,
+                  exerciseSessionId
+                ]
+              );
+
+              for (const set of sets) {
+                const {
+                  weight,
+                  reps,
+                  addedResistance,
+                  rpe,
+                  createdAt,
+                  exerciseId,
+                  id: setId
+                } = set;
+
+                if (setId) {
+                  // Update existing set
+                  await db.runAsync(
+                    `UPDATE sets SET weight = ?, reps = ?, added_resistance = ?, rpe = ? WHERE id = ?;`,
+                    [weight, reps, addedResistance, rpe, setId]
+                  );
+                } else {
+                  // Insert new set
+                  if (!exerciseId) {
+                    throw new Error(`No exerciseId found`);
+                  }
+
+                  await db.runAsync(
+                    `INSERT INTO sets (workout_id, exercise_id, exercise_session_id, weight, reps, added_resistance, rpe, created_at) 
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?);`,
+                    [
+                      workoutId,
+                      exerciseId,
+                      exerciseSessionId,
+                      weight,
+                      reps,
+                      addedResistance,
+                      rpe,
+                      createdAt
+                    ]
+                  );
+                }
               }
             }
           }
+        } catch (e) {
+          console.log(e);
         }
       });
 
@@ -277,6 +308,87 @@ export default function MainScreen() {
     if (controllerRef.current) {
       controllerRef.current.abort();
     }
+  }
+
+  function handleCopyDay() {
+    setClipboard({ type: 'day', data: workoutSessions });
+    moreModal.dismiss();
+  }
+
+  function handlePaste() {
+    if (clipboard.type === 'none') return;
+
+    let updatedDay: WorkoutSessionWithExercises[] = [];
+
+    if (clipboard.type === 'day') {
+      updatedDay = [
+        ...workoutSessions,
+        ...clipboard.data.map(workoutSession => ({
+          ...workoutSession,
+          workoutId: undefined,
+          workoutName: null,
+          workoutStart: currentDate,
+          workoutEnd: null,
+          exercises: workoutSession.exercises.map(exSession => ({
+            ...exSession,
+            createdAt: currentDate,
+            exerciseSessionId: undefined,
+            sets:
+              exSession.sets?.map(set => ({
+                ...set,
+                createdAt: new Date().toISOString(),
+                id: undefined
+              })) || []
+          }))
+        }))
+      ];
+    } else if (clipboard.type === 'workoutSession') {
+      updatedDay = [
+        ...workoutSessions,
+        {
+          ...clipboard.data,
+          workoutId: undefined,
+          workoutName: null,
+          workoutStart: currentDate,
+          workoutEnd: null,
+          exercises: clipboard.data.exercises.map(exSession => ({
+            ...exSession,
+            createdAt: new Date().toISOString(),
+            exerciseSessionId: undefined,
+            sets:
+              exSession.sets?.map(set => ({
+                ...set,
+                createdAt: new Date().toISOString(),
+                id: undefined
+              })) || []
+          }))
+        }
+      ];
+    } else if (clipboard.type === 'exerciseSession') {
+      const newWorkoutSession: WorkoutSessionWithExercises = {
+        workoutName: null,
+        workoutStart: currentDate,
+        workoutEnd: null,
+        workoutId: undefined,
+        exercises: [
+          {
+            ...clipboard.data,
+            sets:
+              clipboard.data.sets?.map(set => ({
+                ...set,
+                createdAt: new Date().toISOString(),
+                id: undefined
+              })) || []
+          }
+        ]
+      };
+      updatedDay = [...workoutSessions, newWorkoutSession];
+    }
+
+    setValue('workouts', updatedDay);
+    moreModal.dismiss();
+    showToast({ theme, title: 'Workout pasted' });
+    setIsWorkoutSynched(false);
   }
 
   return (
@@ -344,7 +456,7 @@ export default function MainScreen() {
               )}
               <Pressable
                 hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
-                onPress={presentMore}
+                onPress={moreModal.present}
               >
                 <Ionicons
                   name="ellipsis-vertical"
@@ -411,8 +523,10 @@ export default function MainScreen() {
                   reset,
                   setFocus,
                   getValues,
-                  setValue
+                  setValue,
+                  clipboard
                 }}
+                onCopyToClipboard={setClipboard}
                 onRemoveWorkoutSession={() => setIsWorkoutSynched(true)}
                 onAddSet={() => setIsWorkoutSynched(false)}
                 onRemoveSet={() => setIsWorkoutSynched(true)}
@@ -454,7 +568,7 @@ export default function MainScreen() {
       )}
 
       <Modal
-        ref={refMore}
+        ref={moreModal.ref}
         title="More"
         enableDynamicSizing
         snapPoints={[]}
@@ -464,7 +578,7 @@ export default function MainScreen() {
           <Box padding="m" gap="m" flex={1}>
             <Pressable
               onPress={() => {
-                dismissMore();
+                moreModal.dismiss();
                 router.navigate({
                   pathname: '/calendarView',
                   params: { targetWorkoutDateString: currentDate }
@@ -485,7 +599,7 @@ export default function MainScreen() {
 
             <Pressable
               onPress={() => {
-                dismissMore();
+                moreModal.dismiss();
                 router.navigate({
                   pathname: '/template',
                   params: { workoutDate: currentDate }
@@ -496,18 +610,46 @@ export default function MainScreen() {
                 label={'Use template'}
                 iconLeft={
                   <Ionicons
-                    name="copy-outline"
+                    name="copy"
                     size={20}
                     color={theme.colors.primary}
                   />
                 }
               />
             </Pressable>
+            {workoutSessions.length > 0 && (
+              <Pressable onPress={handleCopyDay}>
+                <MenuItem
+                  label={'Copy'}
+                  iconLeft={
+                    <Ionicons
+                      name="copy-outline"
+                      size={20}
+                      color={theme.colors.primary}
+                    />
+                  }
+                />
+              </Pressable>
+            )}
+            {clipboard.type !== 'none' && (
+              <Pressable onPress={handlePaste}>
+                <MenuItem
+                  label={'Paste'}
+                  iconLeft={
+                    <Ionicons
+                      name="clipboard-outline"
+                      size={20}
+                      color={theme.colors.primary}
+                    />
+                  }
+                />
+              </Pressable>
+            )}
             {menuItems.map(({ href, label, icon }, index) => (
               <Pressable
                 key={index}
                 onPress={() => {
-                  dismissMore();
+                  moreModal.dismiss();
 
                   if (href) {
                     router.push(href);

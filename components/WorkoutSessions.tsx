@@ -1,7 +1,7 @@
 import { Box } from '@/components/ui/Box';
 import { Text } from '@/components/ui/Text';
 import { Theme } from '@/lib/theme';
-import { Workout } from '@/lib/zodSchemas';
+import { ExerciseSessionWithSets, Workout } from '@/lib/zodSchemas';
 import { useTheme } from '@shopify/restyle';
 import { useSQLiteContext } from 'expo-sqlite';
 import {
@@ -22,6 +22,8 @@ import { Pressable } from 'react-native';
 import { router } from 'expo-router';
 import MenuItem from '@/components/MenuItem';
 import Button from '@/components/ui/Button';
+import { Dispatch, SetStateAction } from 'react';
+import { ClipboardState } from '@/app';
 
 type WorkoutSessionProps = {
   control: Control<Workout>;
@@ -32,6 +34,8 @@ type WorkoutSessionProps = {
   onAddSet: () => void;
   onRemoveSet: () => void;
   onRemoveWorkoutSession: () => void;
+  onCopyToClipboard: Dispatch<SetStateAction<ClipboardState>>;
+  clipboard: ClipboardState;
 };
 
 const WorkoutSessions = ({
@@ -42,7 +46,9 @@ const WorkoutSessions = ({
   setValue,
   onAddSet,
   onRemoveSet,
-  onRemoveWorkoutSession
+  onRemoveWorkoutSession,
+  onCopyToClipboard,
+  clipboard
 }: WorkoutSessionProps) => {
   const theme = useTheme<Theme>();
   const db = useSQLiteContext();
@@ -102,6 +108,59 @@ const WorkoutSessions = ({
       showToast({ theme, title: 'Workout deleted' });
       onRemoveWorkoutSession();
     }
+  }
+
+  function handleCopyWorkoutSession(workoutSessionIndex: number) {
+    onCopyToClipboard({
+      type: 'workoutSession',
+      data: workoutSessions[workoutSessionIndex]
+    });
+    showToast({ theme, title: 'Workout copied' });
+    workoutSessionModal.dismiss();
+  }
+
+  function handlePasteWorkoutSession(workoutSessionIndex: number) {
+    if (!clipboard) return;
+
+    const session = workoutSessions[workoutSessionIndex];
+    let updatedSession: ExerciseSessionWithSets[] = [];
+
+    if (clipboard.type === 'workoutSession') {
+      updatedSession = [
+        ...session.exercises,
+        ...clipboard.data.exercises.map(exSession => ({
+          ...exSession,
+          createdAt: new Date().toISOString(),
+          exerciseSessionId: undefined,
+          sets:
+            exSession.sets?.map(set => ({
+              ...set,
+              createdAt: new Date().toISOString(),
+              id: undefined
+            })) || []
+        }))
+      ];
+    } else if (clipboard.type === 'exerciseSession') {
+      updatedSession = [
+        ...session.exercises,
+        {
+          ...clipboard.data,
+          createdAt: new Date().toISOString(),
+          exerciseSessionId: undefined,
+          sets:
+            clipboard.data.sets?.map(set => ({
+              ...set,
+              createdAt: new Date().toISOString(),
+              id: undefined
+            })) || []
+        }
+      ];
+    }
+
+    setValue(`workouts.${workoutSessionIndex}.exercises`, updatedSession);
+    onAddSet();
+    showToast({ theme, title: 'Workout pasted' });
+    workoutSessionModal.dismiss();
   }
 
   return (
@@ -170,7 +229,9 @@ const WorkoutSessions = ({
                 getValues,
                 workoutSessionIndex,
                 onAddSet,
-                onRemoveSet
+                onRemoveSet,
+                onCopyToClipboard,
+                clipboard
               }}
               onRemoveWorkoutSession={handleDeleteWorkoutSession}
             />
@@ -235,6 +296,38 @@ const WorkoutSessions = ({
                   }
                 />
               </Pressable>
+              <Pressable
+                onPress={() => {
+                  handleCopyWorkoutSession(workoutSessionIndex);
+                }}
+              >
+                <MenuItem
+                  label={'Copy'}
+                  iconLeft={
+                    <Ionicons
+                      name="copy-outline"
+                      size={20}
+                      color={theme.colors.primary}
+                    />
+                  }
+                />
+              </Pressable>
+              {clipboard && (
+                <Pressable
+                  onPress={() => handlePasteWorkoutSession(workoutSessionIndex)}
+                >
+                  <MenuItem
+                    label={'Paste'}
+                    iconLeft={
+                      <Ionicons
+                        name="clipboard-outline"
+                        size={20}
+                        color={theme.colors.primary}
+                      />
+                    }
+                  />
+                </Pressable>
+              )}
               <Pressable
                 onPress={() => {
                   dangerousActionModal.present({

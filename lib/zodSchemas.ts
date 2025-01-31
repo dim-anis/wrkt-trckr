@@ -59,7 +59,7 @@ export const exerciseSessionSchema = z.object({
   exerciseSessionNotes: z
     .preprocess(val => (val === '' ? null : val), z.string().nullable())
     .default(null),
-  exerciseSessionId: z.number(),
+  exerciseSessionId: z.number().optional(),
   exerciseSessionWeightUnit: z.enum(['kg', 'lb', 'bw'])
 });
 
@@ -81,7 +81,7 @@ export const exerciseSessionWithSetsSchema = exerciseSessionSchema
   });
 
 export const workoutSessionSchema = z.object({
-  workoutId: z.number(),
+  workoutId: z.number().optional(),
   workoutName: z
     .preprocess(val => (val === '' ? null : val), z.string().nullable())
     .default(null),

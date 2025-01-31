@@ -5,7 +5,12 @@ import Button from '@/components/ui/Button';
 import { ControlledInput } from '@/components/ui/Input';
 import { Modal, useModal } from '@/components/ui/Modal';
 import { Theme } from '@/lib/theme';
-import { Workout } from '@/lib/zodSchemas';
+import {
+  ExerciseSession,
+  ExerciseSessionWithExercise,
+  Workout,
+  WorkoutSessionWithExercises
+} from '@/lib/zodSchemas';
 import { Ionicons } from '@expo/vector-icons';
 import { BottomSheetView } from '@gorhom/bottom-sheet';
 import { useTheme } from '@shopify/restyle';
@@ -20,6 +25,8 @@ import {
 import { Pressable } from 'react-native';
 import ExerciseSessionSets from './ExerciseSessionSets';
 import { showToast } from '@/lib/utils';
+import { Dispatch, SetStateAction } from 'react';
+import { ClipboardState } from '@/app';
 
 type ExerciseSessionProps = {
   control: Control<Workout>;
@@ -30,6 +37,8 @@ type ExerciseSessionProps = {
   onAddSet: () => void;
   onRemoveSet: () => void;
   onRemoveWorkoutSession: (workoutSessionId: number) => void;
+  onCopyToClipboard: Dispatch<SetStateAction<ClipboardState>>;
+  clipboard: ClipboardState;
 };
 
 const ExerciseSessions = ({
@@ -40,7 +49,9 @@ const ExerciseSessions = ({
   getValues,
   onAddSet,
   onRemoveSet,
-  onRemoveWorkoutSession
+  onRemoveWorkoutSession,
+  clipboard,
+  onCopyToClipboard
 }: ExerciseSessionProps) => {
   const theme = useTheme<Theme>();
   const db = useSQLiteContext();
@@ -67,6 +78,15 @@ const ExerciseSessions = ({
     }
   }
 
+  function handleCopyExercise(exerciseSessionIndex: number) {
+    onCopyToClipboard({
+      type: 'exerciseSession',
+      data: exerciseSessions[exerciseSessionIndex]
+    });
+    showToast({ theme, title: 'Exercise copied' });
+    exerciseModal.dismiss();
+  }
+
   const exerciseModal = useModal();
 
   const dangerousActionModal = useModal();
@@ -89,19 +109,17 @@ const ExerciseSessions = ({
               >
                 {exerciseName}
               </Text>
-              {/* TODO: Implement copy, duplicate */}
-
-              {/* <Pressable */}
-              {/*   onPress={() => */}
-              {/*     exerciseModal.present({ exerciseName, exerciseSessionIndex }) */}
-              {/*   } */}
-              {/* > */}
-              {/*   <Ionicons */}
-              {/*     name="ellipsis-horizontal" */}
-              {/*     color={theme.colors.primary} */}
-              {/*     size={20} */}
-              {/*   /> */}
-              {/* </Pressable> */}
+              <Pressable
+                onPress={() =>
+                  exerciseModal.present({ exerciseName, exerciseSessionIndex })
+                }
+              >
+                <Ionicons
+                  name="ellipsis-horizontal"
+                  color={theme.colors.primary}
+                  size={20}
+                />
+              </Pressable>
             </Box>
             <Box gap="m">
               <ControlledInput
@@ -146,9 +164,11 @@ const ExerciseSessions = ({
         {({ data: { exerciseName, exerciseSessionIndex } }) => (
           <BottomSheetView>
             <Box padding="m" gap="m">
-              <Pressable onPress={() => alert('duplicate')}>
+              <Pressable
+                onPress={() => handleCopyExercise(exerciseSessionIndex)}
+              >
                 <MenuItem
-                  label={'Duplicate exercise'}
+                  label={'Copy'}
                   iconLeft={
                     <Ionicons
                       name="copy-outline"
@@ -158,18 +178,18 @@ const ExerciseSessions = ({
                   }
                 />
               </Pressable>
-              <Pressable onPress={() => alert('stats')}>
-                <MenuItem
-                  label={'See exercise stats'}
-                  iconLeft={
-                    <Ionicons
-                      name="bar-chart-outline"
-                      color={theme.colors.primary}
-                      size={20}
-                    />
-                  }
-                />
-              </Pressable>
+              {/* <Pressable onPress={() => alert('stats')}> */}
+              {/*   <MenuItem */}
+              {/*     label={'See exercise stats'} */}
+              {/*     iconLeft={ */}
+              {/*       <Ionicons */}
+              {/*         name="bar-chart-outline" */}
+              {/*         color={theme.colors.primary} */}
+              {/*         size={20} */}
+              {/*       /> */}
+              {/*     } */}
+              {/*   /> */}
+              {/* </Pressable> */}
               <Pressable
                 onPress={() =>
                   dangerousActionModal.present({
