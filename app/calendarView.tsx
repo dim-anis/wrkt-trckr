@@ -149,6 +149,7 @@ export default function CalendarView() {
       }
     });
 
+    copyWorkoutModal.dismiss();
     router.navigate({ pathname: '/' });
   }
 
@@ -216,6 +217,7 @@ export default function CalendarView() {
     `
     );
 
+    copyWorkoutModal.dismiss();
     router.navigate('/');
   }
 
@@ -239,6 +241,8 @@ export default function CalendarView() {
         sourceWorkoutExerciseSessions: sourceWorkout.exercises
       });
     }
+
+    workoutDetailsModal.dismiss();
   }
 
   useFocusEffect(
@@ -412,9 +416,12 @@ export default function CalendarView() {
                   <Box flex={1}>
                     <Button
                       label={'Create new workout'}
-                      onPress={() =>
-                        handleCreateNewWorkout(sourceWorkoutId, targetWorkoutId)
-                      }
+                      onPress={() => {
+                        handleCreateNewWorkout(
+                          sourceWorkoutId,
+                          targetWorkoutId
+                        );
+                      }}
                     />
                   </Box>
                 </Box>
