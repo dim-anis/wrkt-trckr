@@ -45,13 +45,8 @@ export default function CalendarView() {
   const { targetWorkoutDateString } = useLocalSearchParams<SearchParams>();
   const targetWorkoutDateTimestamp = new Date(targetWorkoutDateString);
 
-  const [selectedDate, setSelectedDate] = React.useState(
-    toDateId(targetWorkoutDateTimestamp)
-  );
+  const selectedDateId = toDateId(targetWorkoutDateTimestamp);
   const [workoutIds, setWorkoutIds] = React.useState<Set<string>>(new Set());
-  const [workoutSessionsToShow, setWorkoutSessionsToShow] = React.useState<
-    Workout['workouts']
-  >([]);
 
   const ref = useRef<CalendarListRef>(null);
 
@@ -60,8 +55,6 @@ export default function CalendarView() {
 
   const handleCalendarPress = React.useCallback(
     (date: string) => {
-      setSelectedDate(date);
-
       async function fetchSets() {
         const result = await db.getAllAsync<
           WorkoutSession & ExerciseSessionWithExercise & ExerciseSet
@@ -103,16 +96,14 @@ export default function CalendarView() {
           toDateId(new Date(date))
         );
 
-        if (result) {
-          setWorkoutSessionsToShow(groupWorkoutSessions(result));
-        }
+        workoutDetailsModal.present({
+          data: groupWorkoutSessions(result)
+        });
       }
 
       fetchSets();
-
-      workoutDetailsModal.present({ date });
     },
-    [workoutDetailsModal.present]
+    [workoutDetailsModal]
   );
 
   async function handleAppendToWorkout(
@@ -310,13 +301,13 @@ export default function CalendarView() {
         <Calendar.List
           calendarActiveDateRanges={[
             {
-              startId: selectedDate,
-              endId: selectedDate
+              startId: selectedDateId,
+              endId: selectedDateId
             }
           ]}
           calendarMinDateId={workoutIds.values().next().value}
           calendarFirstDayOfWeek="monday"
-          calendarInitialMonthId={selectedDate}
+          calendarInitialMonthId={selectedDateId}
           onCalendarDayPress={handleCalendarPress}
           calendarDayHeight={48}
           ref={ref}
@@ -336,15 +327,15 @@ export default function CalendarView() {
 
       <Modal
         ref={workoutDetailsModal.ref}
-        title={`Workouts from ${format(selectedDate, 'MMM d')}`}
+        title={`Workout details`}
         enableDynamicSizing
         backgroundStyle={{ backgroundColor: theme.colors.background }}
       >
-        {({ data: { date } }) => (
+        {({ data: { data } }) => (
           <BottomSheetScrollView>
             <Box padding="m" gap="l">
-              {workoutIds.has(date) ? (
-                workoutSessionsToShow.map((sourceWorkout, idx) => {
+              {data.length > 0 ? (
+                data.map((sourceWorkout, idx) => {
                   const workoutName =
                     sourceWorkout.workoutName ?? `Workout #${idx + 1}`;
                   return (
