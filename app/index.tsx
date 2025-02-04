@@ -35,12 +35,12 @@ import WorkoutSessions from '../components/WorkoutSessions';
 import Button from '@/components/ui/Button';
 
 const menuItems: TMenuItem[] = [
-  {
-    id: 'settings-statistics',
-    href: '/stats',
-    label: 'Statistics',
-    icon: 'stats-chart-outline'
-  },
+  // {
+  //   id: 'settings-statistics',
+  //   href: '/stats/day',
+  //   label: 'Statistics',
+  //   icon: 'stats-chart-outline'
+  // },
   {
     id: 'settings-tracker',
     href: '/settings/bodyMetrics',
@@ -645,6 +645,28 @@ export default function MainScreen() {
                 />
               </Pressable>
             )}
+            <Pressable
+              onPress={() => {
+                router.navigate({
+                  pathname: '/stats/day',
+                  params: {
+                    dateRangeFrom: currentDate
+                  }
+                });
+                moreModal.dismiss();
+              }}
+            >
+              <MenuItem
+                label={'Statistics'}
+                iconLeft={
+                  <Ionicons
+                    name="stats-chart-outline"
+                    size={20}
+                    color={theme.colors.primary}
+                  />
+                }
+              />
+            </Pressable>
             {menuItems.map(({ href, label, icon }, index) => (
               <Pressable
                 key={index}
