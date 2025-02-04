@@ -314,6 +314,7 @@ export default function CalendarView() {
               endId: selectedDate
             }
           ]}
+          calendarMinDateId={workoutIds.values().next().value}
           calendarFirstDayOfWeek="monday"
           calendarInitialMonthId={selectedDate}
           onCalendarDayPress={handleCalendarPress}
