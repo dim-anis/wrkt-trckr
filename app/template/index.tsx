@@ -461,6 +461,8 @@ export default function SelectTemplate() {
         });
       }
     }
+
+    templateWorkoutsModal.dismiss();
   }
 
   return (
