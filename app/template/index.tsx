@@ -674,7 +674,8 @@ export default function SelectTemplate() {
       <Modal
         ref={templateWorkoutsModal.ref}
         title={`Template workouts`}
-        enableDynamicSizing
+        enableDynamicSizing={false}
+        snapPoints={['75%']}
         backgroundStyle={{ backgroundColor: theme.colors.background }}
       >
         <BottomSheetScrollView>

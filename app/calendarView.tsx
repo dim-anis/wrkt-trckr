@@ -328,7 +328,8 @@ export default function CalendarView() {
       <Modal
         ref={workoutDetailsModal.ref}
         title={`Workout details`}
-        enableDynamicSizing
+        enableDynamicSizing={false}
+        snapPoints={['75%']}
         backgroundStyle={{ backgroundColor: theme.colors.background }}
       >
         {({ data: { data } }) => (
